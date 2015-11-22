@@ -37,6 +37,8 @@ public class MainActivity extends AppCompatActivity {
      */
     private SectionsPagerAdapter mSectionsPagerAdapter;
 
+    //Tole je test ce github deluje | Nejc :D
+
     /**
      * The {@link ViewPager} that will host the section contents.
      */
