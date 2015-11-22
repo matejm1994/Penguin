@@ -11,13 +11,19 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
+import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
+import android.content.Intent;
+
+import javax.xml.datatype.Duration;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -80,10 +86,21 @@ public class MainActivity extends AppCompatActivity {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+        switch (id) {
+            case R.id.action_settings:
+                //User choose Settings
+                return true;
+            case R.id.action_login:
+                //Start new Login Activity
+                Intent intent = new Intent(this, LoginActivity.class);
+                startActivity(intent);
+
+                return true;
+            default:
+                // If we get here, user action is not recognized
+                break;
         }
+
 
         return super.onOptionsItemSelected(item);
     }
@@ -116,11 +133,11 @@ public class MainActivity extends AppCompatActivity {
         public CharSequence getPageTitle(int position) {
             switch (position) {
                 case 0:
-                    return "SECTION 1";
+                    return "FOTOGRAFIJE";
                 case 1:
-                    return "SECTION 2";
+                    return "IZZIVI";
                 case 2:
-                    return "SECTION 3";
+                    return "STATISTIKA";
             }
             return null;
         }
