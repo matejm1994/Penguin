@@ -89,11 +89,13 @@ public class MainActivity extends AppCompatActivity {
         switch (id) {
             case R.id.action_settings:
                 //User choose Settings
+                Intent intentSettings = new Intent(this, SettingsActivity.class);
+                startActivity(intentSettings);
                 return true;
             case R.id.action_login:
                 //Start new Login Activity
-                Intent intent = new Intent(this, LoginActivity.class);
-                startActivity(intent);
+                Intent intentLogin = new Intent(this, LoginActivity.class);
+                startActivity(intentLogin);
 
                 return true;
             default:
