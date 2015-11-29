@@ -1,5 +1,9 @@
 package com.penguin.fri.penguin;
 
+import android.annotation.TargetApi;
+import android.os.AsyncTask;
+import android.os.Build;
+import android.support.annotation.Nullable;
 import android.support.design.widget.TabLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -18,10 +22,22 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
+import android.widget.AdapterView;
 import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.content.Intent;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.util.EntityUtils;
 
 import javax.xml.datatype.Duration;
 
@@ -124,7 +140,24 @@ public class MainActivity extends AppCompatActivity {
         public Fragment getItem(int position) {
             // getItem is called to instantiate the fragment for the given page.
             // Return a PlaceholderFragment (defined as a static inner class below).
-            return PlaceholderFragment.newInstance(position + 1);
+
+            Fragment myFragment = null;
+            switch (position){
+                case 0:
+                    myFragment = PlaceholderFragment.newInstance(position + 1);
+                    break;
+                case 1:
+                    myFragment = new PrikazPonudbFragment();
+                    break;
+                case 2:
+                    myFragment = PlaceholderFragment.newInstance(position+1);
+                    break;
+            }
+
+            return myFragment;
+
+
+            //return PlaceholderFragment.newInstance(position + 1);
         }
 
         @Override
@@ -180,5 +213,106 @@ public class MainActivity extends AppCompatActivity {
             textView.setText(getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER)));
             return rootView;
         }
+    }
+    //fragment za prikaz ponudb.
+    public static class PrikazPonudbFragment extends Fragment{
+
+        ListView list;
+        String[] web;
+        Integer[] imageId;
+        View rootView;
+
+       public static PrikazPonudbFragment newInstance(int sectionNumber){
+            PrikazPonudbFragment fragment = new PrikazPonudbFragment();
+            return fragment;
+        }
+
+        @Nullable
+        @Override
+        public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+
+            rootView = inflater.inflate(R.layout.activity_prikaz_ponudb, container, false);
+            RESTCallTaskGetcompanies restCallTaskGetcompanies = new RESTCallTaskGetcompanies();
+            restCallTaskGetcompanies.execute();
+
+            return rootView;
+        }
+
+        public void listViewInit(){ //inicializacija ListView-a po izvdebi requesta
+            CustomList adapter = new
+                    CustomList(getActivity(), web, imageId);
+            list=(ListView) rootView.findViewById(R.id.list);
+            list.setAdapter(adapter);
+            list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view,
+                                        int position, long id) {
+                    Toast.makeText(getActivity(), "You Clicked at " + web[+position], Toast.LENGTH_SHORT).show();
+
+                }
+            });
+        }
+
+
+
+        @TargetApi(Build.VERSION_CODES.CUPCAKE)
+        private class RESTCallTaskGetcompanies extends AsyncTask<String, Void, String[]> { //testni za registracijo
+            private final String URLCompanies = "http://10.0.2.2:8080/companies"; // za seznam
+            //"http://10.0.2.2/wcfservice1/Service1.svc/Messages";
+
+            @Override
+            protected String[] doInBackground(String... params) {
+                HttpClient hc = new DefaultHttpClient();
+                String resultHttpRequest = null;
+                String [] resultFinal = null;
+                try {
+
+                    //request za seznam podjetij
+                    HttpGet getRequest = new HttpGet(URLCompanies);
+                    HttpResponse response = hc.execute(getRequest);
+                    HttpEntity entity = response.getEntity();
+                    resultHttpRequest = EntityUtils.toString(entity);
+                    JSONArray jsonArray = new JSONArray(resultHttpRequest);
+
+                    //request za ponudbe
+
+
+                    //StringBuffer sb = new StringBuffer();
+                    web = new String[jsonArray.length()];
+                    imageId = new Integer[jsonArray.length()];
+
+                    //za imena podjetij
+                    for (int i=0; i<jsonArray.length(); i++) {
+                        JSONObject jsonObject = jsonArray.getJSONObject(i);
+                        String line = //popravi
+                                        jsonObject.getString("name")+", "+ jsonObject.getString("email");
+                        //sb.append(line + "\n");
+
+                        //podatki o podjetju
+                        web[i] = line;
+
+                        //slika podjetja
+                        imageId[i] = getContext().
+                                getResources().
+                                getIdentifier("image"+i,"drawable",getContext().
+                                        getPackageName());
+
+                    }
+
+                    resultFinal = web; //sb.toString();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                return resultFinal;
+            }
+
+            @Override
+            protected void onPostExecute(String[] result) {
+                listViewInit(); //Inicializiramo listView
+            }
+        }
+
     }
 }
