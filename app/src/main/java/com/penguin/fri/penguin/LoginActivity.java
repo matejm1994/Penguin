@@ -6,6 +6,7 @@ import android.annotation.TargetApi;
 import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
+import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.app.LoaderManager.LoaderCallbacks;
 
@@ -26,21 +27,22 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.TextView;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
-import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.net.URL;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -71,6 +73,11 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     // UI references.
     private AutoCompleteTextView mEmailView;
     private EditText mPasswordView;
+    private TextInputLayout TextInputLayoutmNameView;
+    private TextInputLayout TextInputLayoutmAddressView;
+    private EditText mName;
+    private EditText mAddress;
+    private CheckBox checkBox;
     private View mProgressView;
     private View mLoginFormView;
 
@@ -94,6 +101,30 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 return false;
             }
         });
+
+        mName = (EditText) findViewById(R.id.name);
+        mAddress = (EditText) findViewById(R.id.address);
+
+        TextInputLayoutmNameView = (TextInputLayout) findViewById(R.id.textInputLayoutName);
+        TextInputLayoutmAddressView = (TextInputLayout) findViewById(R.id.textInputLayoutAddress);
+        checkBox = (CheckBox) findViewById(R.id.checkBox);
+        checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (checkBox.isChecked()){
+                    TextInputLayoutmNameView.setVisibility(View.VISIBLE);
+                    TextInputLayoutmAddressView.setVisibility(View.VISIBLE);
+                    TextInputLayoutmNameView.requestLayout();
+                    TextInputLayoutmAddressView.requestLayout();
+                }else {
+                    TextInputLayoutmNameView.setVisibility(View.GONE);
+                    TextInputLayoutmAddressView.setVisibility(View.GONE);
+                    TextInputLayoutmNameView.requestLayout();
+                    TextInputLayoutmAddressView.requestLayout();
+                }
+            }
+        });
+
 
         Button mEmailSignInButton = (Button) findViewById(R.id.email_sign_in_button);
         mEmailSignInButton.setOnClickListener(new OnClickListener() {
@@ -178,6 +209,8 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         // Store values at the time of the login attempt.
         String email = mEmailView.getText().toString();
         String password = mPasswordView.getText().toString();
+        String name = mName.getText().toString();
+        String address = mAddress.getText().toString();
 
         boolean cancel = false;
         View focusView = null;
@@ -208,7 +241,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
             showProgress(true);
-            mAuthTask = new UserLoginTask(email, password);
+            mAuthTask = new UserLoginTask(email, password, name, address);
             mAuthTask.execute((Void) null);
         }
     }
@@ -321,10 +354,16 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
         private final String mEmail;
         private final String mPassword;
+        private final String mName;
+        private final String mAddress;
 
-        UserLoginTask(String email, String password) {
+        boolean company = checkBox.isChecked();
+
+        UserLoginTask(String email, String password, String name, String address) {
             mEmail = email;
             mPassword = password;
+            mName = name;
+            mAddress = address;
         }
 
 
@@ -333,24 +372,33 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         @Override
         protected Boolean doInBackground(Void... params) {
             // TODO: attempt authentication against a network service.
-            String URLCompanyOffer = "http://10.0.2.2:8080/login/"+mEmail+"/"+mPassword;
-            HttpClient hc = new DefaultHttpClient();
+            String URLCompanyAndUserLogin = "http://10.0.2.2:8080/login/"+mEmail+"/"+mPassword; //login za oba je enak
+            String URLUserRegister = "http://10.0.2.2:8080/register/"+mEmail+"/"+mPassword; //register za userja
+            String URLCompanyRegister = "http://10.0.2.2:8080/company/register/"+mEmail+"/"+mPassword+
+                    "/"+mName+"/"+mAddress; //registracija za podjetje
+
+
             String result = "";
 
             try {
-                //network access.
+                //login
+                result = postConnection(URLCompanyAndUserLogin);
+                JSONObject responeString = new JSONObject(result);
+                String response =  responeString.getString("response");
 
-
-                HttpPost httpPostRequest = new HttpPost(URLCompanyOffer);
-                HttpResponse httpResponse = hc.execute(httpPostRequest);
-                HttpEntity httpEntity = httpResponse.getEntity();
-                result = EntityUtils.toString(httpEntity);
-                JSONArray jsonArray = new JSONArray(result);
-                JSONObject responeString = jsonArray.getJSONObject(0);
-
-
-
-
+                if (response.equals("Login Sucess")){
+                    return true;
+                }if (response.equals("Login Failed, user does not exist!")){//ce user ne obstaja ga registriramo
+                    //nastavimo primeren URL za registracijo
+                    String URLregister = company ? URLCompanyRegister : URLUserRegister;
+                    URLregister = URLregister.replaceAll(" ", "%20"); //potrebno zaradi presledkov
+                    //URLregister = URLEncoder.encode(URLregister, "UTF-8");
+                    postConnection(URLregister); //registracija
+                    postConnection(URLCompanyAndUserLogin); //login
+                    return true;
+                }if(response.equals("Login Failed, wrong password")){
+                    return false;
+                }
 
             } catch (Exception e) {
                 e.printStackTrace();
@@ -365,7 +413,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         protected void onPostExecute(final Boolean success) {
             mAuthTask = null;
             showProgress(false);
-            System.out.println("Tu smo");
             if (success) {
                 finish();
             } else {
@@ -379,6 +426,19 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             mAuthTask = null;
             showProgress(false);
         }
+
+        //post klic
+        public String postConnection(String URL) throws IOException {
+            HttpClient hc = new DefaultHttpClient();
+            HttpPost httpPostLoginRequest = new HttpPost(URL);
+            HttpResponse httpResponse = hc.execute(httpPostLoginRequest);
+            HttpEntity httpEntity = httpResponse.getEntity();
+            return EntityUtils.toString(httpEntity);
+        }
     }
+
+
+
+
 }
 
