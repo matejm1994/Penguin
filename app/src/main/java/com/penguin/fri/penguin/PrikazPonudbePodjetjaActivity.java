@@ -89,10 +89,10 @@ public class PrikazPonudbePodjetjaActivity extends AppCompatActivity {
 
                 StringBuffer sb = new StringBuffer();
                 resultFinal = new String[jsonArray.length()]; //nastavimo velikost tabele
-                //za imena podjetij
+                //za imena ponudb
                 for (int i=0; i<jsonArray.length(); i++) {
                     JSONObject jsonObject = jsonArray.getJSONObject(i);
-                    String line = //popravi
+                    String line =
                             jsonObject.getString("name")+", "+ jsonObject.getString("rules");
                     resultFinal[i]=line;
 

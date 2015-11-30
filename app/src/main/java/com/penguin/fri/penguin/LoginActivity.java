@@ -29,6 +29,18 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.util.EntityUtils;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -315,24 +327,35 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             mPassword = password;
         }
 
+
+
+
         @Override
         protected Boolean doInBackground(Void... params) {
             // TODO: attempt authentication against a network service.
+            String URLCompanyOffer = "http://10.0.2.2:8080/login/"+mEmail+"/"+mPassword;
+            HttpClient hc = new DefaultHttpClient();
+            String result = "";
 
             try {
-                // Simulate network access.
-                Thread.sleep(2000);
-            } catch (InterruptedException e) {
-                return false;
+                //network access.
+
+
+                HttpPost httpPostRequest = new HttpPost(URLCompanyOffer);
+                HttpResponse httpResponse = hc.execute(httpPostRequest);
+                HttpEntity httpEntity = httpResponse.getEntity();
+                result = EntityUtils.toString(httpEntity);
+                JSONArray jsonArray = new JSONArray(result);
+                JSONObject responeString = jsonArray.getJSONObject(0);
+
+
+
+
+
+            } catch (Exception e) {
+                e.printStackTrace();
             }
 
-            for (String credential : DUMMY_CREDENTIALS) {
-                String[] pieces = credential.split(":");
-                if (pieces[0].equals(mEmail)) {
-                    // Account exists, return true if the password matches.
-                    return pieces[1].equals(mPassword);
-                }
-            }
 
             // TODO: register the new account here.
             return true;
@@ -342,7 +365,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         protected void onPostExecute(final Boolean success) {
             mAuthTask = null;
             showProgress(false);
-
+            System.out.println("Tu smo");
             if (success) {
                 finish();
             } else {
