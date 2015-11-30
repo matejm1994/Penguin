@@ -60,6 +60,7 @@ public class MainActivity extends AppCompatActivity {
      */
     private ViewPager mViewPager;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -221,6 +222,7 @@ public class MainActivity extends AppCompatActivity {
         String[] web;
         Integer[] imageId;
         View rootView;
+        public CompanyClass [] podjetja;
 
        public static PrikazPonudbFragment newInstance(int sectionNumber){
             PrikazPonudbFragment fragment = new PrikazPonudbFragment();
@@ -248,7 +250,13 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onItemClick(AdapterView<?> parent, View view,
                                         int position, long id) {
-                    Toast.makeText(getActivity(), "You Clicked at " + web[+position], Toast.LENGTH_SHORT).show();
+                    //nova aktivnost z imenom
+                    Intent intent = new Intent(view.getContext(), PrikazPonudbePodjetjaActivity.class);
+                    intent.putExtra("CompanyObject", podjetja[+position]);
+                    startActivity(intent);
+
+
+                   // Toast.makeText(getActivity(), "You Clicked at " + web[+position], Toast.LENGTH_SHORT).show();
 
                 }
             });
@@ -281,6 +289,7 @@ public class MainActivity extends AppCompatActivity {
                     //StringBuffer sb = new StringBuffer();
                     web = new String[jsonArray.length()];
                     imageId = new Integer[jsonArray.length()];
+                    podjetja = new CompanyClass[jsonArray.length()];
 
                     //za imena podjetij
                     for (int i=0; i<jsonArray.length(); i++) {
@@ -295,8 +304,14 @@ public class MainActivity extends AppCompatActivity {
                         //slika podjetja
                         imageId[i] = getContext().
                                 getResources().
-                                getIdentifier("image"+i,"drawable",getContext().
+                                getIdentifier("image"+jsonObject.getString("id"),"drawable",getContext().
                                         getPackageName());
+
+                        //seznam objektov podjetij
+                        podjetja[i] = new CompanyClass(
+                                Integer.valueOf(jsonObject.getString("id")),
+                                jsonObject.getString("name"),
+                                jsonObject.getString("email"));
 
                     }
 
