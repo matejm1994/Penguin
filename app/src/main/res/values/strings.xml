@@ -82,4 +82,6 @@
     <string name="title_activity_prikaz_ponudbe_podjetja">Challenge</string>
 
     <string name="hello_world">Hello world!</string>
+    <string name="title_activity_company">CompanyActivity</string>
+    <string name="title_activity_company_main">CompanyMainActivity</string>
 </resources>

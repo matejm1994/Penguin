@@ -44,6 +44,10 @@
             android:name=".PrikazPonudbePodjetjaActivity"
             android:label="@string/title_activity_prikaz_ponudbe_podjetja" >
         </activity>
+        <activity
+            android:name=".CompanyMainActivity"
+            android:label="@string/title_activity_company_main" >
+        </activity>
     </application>
 
 </manifest>

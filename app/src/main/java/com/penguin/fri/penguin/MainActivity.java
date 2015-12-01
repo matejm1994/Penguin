@@ -29,6 +29,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.content.Intent;
 
+
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -38,6 +40,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
+
 
 import javax.xml.datatype.Duration;
 
@@ -108,13 +111,15 @@ public class MainActivity extends AppCompatActivity {
         switch (id) {
             case R.id.action_settings:
                 //User choose Settings
-                Intent intentSettings = new Intent(this, SettingsActivity.class);
+                Intent intentSettings = new Intent(this, CompanyMainActivity.class);
                 startActivity(intentSettings);
+
                 return true;
             case R.id.action_login:
                 //Start new Login Activity
                 Intent intentLogin = new Intent(this, LoginActivity.class);
                 startActivity(intentLogin);
+
 
                 return true;
             default:
@@ -143,7 +148,7 @@ public class MainActivity extends AppCompatActivity {
             // Return a PlaceholderFragment (defined as a static inner class below).
 
             Fragment myFragment = null;
-            switch (position){
+            switch (position) {
                 case 0:
                     myFragment = PlaceholderFragment.newInstance(position + 1);
                     break;
@@ -151,7 +156,7 @@ public class MainActivity extends AppCompatActivity {
                     myFragment = new PrikazPonudbFragment();
                     break;
                 case 2:
-                    myFragment = PlaceholderFragment.newInstance(position+1);
+                    myFragment = PlaceholderFragment.newInstance(position + 1);
                     break;
             }
 
@@ -215,16 +220,18 @@ public class MainActivity extends AppCompatActivity {
             return rootView;
         }
     }
+
     //fragment za prikaz ponudb.
-    public static class PrikazPonudbFragment extends Fragment{
+    public static class PrikazPonudbFragment extends Fragment {
 
         ListView list;
         String[] web;
         Integer[] imageId;
         View rootView;
-        public CompanyClass [] podjetja;
 
-       public static PrikazPonudbFragment newInstance(int sectionNumber){
+        public CompanyClass[] podjetja;
+
+        public static PrikazPonudbFragment newInstance(int sectionNumber) {
             PrikazPonudbFragment fragment = new PrikazPonudbFragment();
             return fragment;
         }
@@ -240,10 +247,10 @@ public class MainActivity extends AppCompatActivity {
             return rootView;
         }
 
-        public void listViewInit(){ //inicializacija ListView-a po izvdebi requesta
+        public void listViewInit() { //inicializacija ListView-a po izvdebi requesta
             CustomList adapter = new
                     CustomList(getActivity(), web, imageId);
-            list=(ListView) rootView.findViewById(R.id.list);
+            list = (ListView) rootView.findViewById(R.id.list);
             list.setAdapter(adapter);
             list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
@@ -256,12 +263,11 @@ public class MainActivity extends AppCompatActivity {
                     startActivity(intent);
 
 
-                   // Toast.makeText(getActivity(), "You Clicked at " + web[+position], Toast.LENGTH_SHORT).show();
+                    // Toast.makeText(getActivity(), "You Clicked at " + web[+position], Toast.LENGTH_SHORT).show();
 
                 }
             });
         }
-
 
 
         @TargetApi(Build.VERSION_CODES.CUPCAKE)
@@ -273,7 +279,7 @@ public class MainActivity extends AppCompatActivity {
             protected String[] doInBackground(String... params) {
                 HttpClient hc = new DefaultHttpClient();
                 String resultHttpRequest = null;
-                String [] resultFinal = null;
+                String[] resultFinal = null;
                 try {
 
                     //request za seznam podjetij
@@ -292,10 +298,10 @@ public class MainActivity extends AppCompatActivity {
                     podjetja = new CompanyClass[jsonArray.length()];
 
                     //za imena podjetij
-                    for (int i=0; i<jsonArray.length(); i++) {
+                    for (int i = 0; i < jsonArray.length(); i++) {
                         JSONObject jsonObject = jsonArray.getJSONObject(i);
                         String line = //popravi
-                                        jsonObject.getString("name")+", "+ jsonObject.getString("email");
+                                jsonObject.getString("name") + ", " + jsonObject.getString("email");
                         //sb.append(line + "\n");
 
                         //podatki o podjetju
@@ -304,7 +310,7 @@ public class MainActivity extends AppCompatActivity {
                         //slika podjetja
                         imageId[i] = getContext().
                                 getResources().
-                                getIdentifier("image"+jsonObject.getString("id"),"drawable",getContext().
+                                getIdentifier("image" + jsonObject.getString("id"), "drawable", getContext().
                                         getPackageName());
 
                         //seznam objektov podjetij

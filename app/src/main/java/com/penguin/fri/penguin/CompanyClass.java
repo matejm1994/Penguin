@@ -18,6 +18,5 @@ public class CompanyClass implements Serializable {
         this.id = id;
         this.name = name;
         this.email = email;
-
     }
 }
