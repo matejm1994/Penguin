@@ -20,6 +20,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -31,6 +32,7 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -38,6 +40,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
@@ -52,6 +55,9 @@ import static android.Manifest.permission.READ_CONTACTS;
  * A login screen that offers login via email/password.
  */
 public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<Cursor> {
+
+
+    public static boolean IS_COMPANY = false;
 
     /**
      * Id to identity READ_CONTACTS permission request.
@@ -111,12 +117,14 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (checkBox.isChecked()){
+                if (checkBox.isChecked()) {
+                    IS_COMPANY = true;
                     TextInputLayoutmNameView.setVisibility(View.VISIBLE);
                     TextInputLayoutmAddressView.setVisibility(View.VISIBLE);
                     TextInputLayoutmNameView.requestLayout();
                     TextInputLayoutmAddressView.requestLayout();
-                }else {
+                } else {
+                    IS_COMPANY = false;
                     TextInputLayoutmNameView.setVisibility(View.GONE);
                     TextInputLayoutmAddressView.setVisibility(View.GONE);
                     TextInputLayoutmNameView.requestLayout();
@@ -232,6 +240,8 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             focusView = mEmailView;
             cancel = true;
         }
+
+
 
         if (cancel) {
             // There was an error; don't attempt login and focus the first
@@ -367,15 +377,114 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         }
 
 
-
-
         @Override
         protected Boolean doInBackground(Void... params) {
             // TODO: attempt authentication against a network service.
-            String URLCompanyAndUserLogin = "http://10.0.2.2:8080/login/"+mEmail+"/"+mPassword; //login za oba je enak
-            String URLUserRegister = "http://10.0.2.2:8080/register/"+mEmail+"/"+mPassword; //register za userja
-            String URLCompanyRegister = "http://10.0.2.2:8080/company/register/"+mEmail+"/"+mPassword+
-                    "/"+mName+"/"+mAddress; //registracija za podjetje
+
+            String result = "";
+            boolean loginSucessful = false;
+            boolean registerSucessful = false;
+            String loginError = "";
+
+            JSONObject response;
+
+            if (IS_COMPANY) {
+                String companyLoginURL = "http://10.0.2.2:8080/company/login/" + mEmail + "/" + mPassword;
+
+                //get result from server
+                try {
+                    result = postConnection(companyLoginURL);
+                    response = new JSONObject(result);
+                    loginSucessful = response.getBoolean("result");
+                    loginError = response.getString("response");
+
+                    if(loginSucessful){
+                        //Company is already in database. We just sign in!
+                        //TODO: Save to some global class or better in shared preferences.
+                        Log.i("LOGIN", "Login sucessfull. Hello Company :)");
+                    }else{
+                        //Login is already registered, but apparently someone mistyped password and should try again.
+                        if(loginError.equals("Login Failed, wrong password")){
+                            Log.i("LOGIN", "Login failed. Check you password and try again.");
+                            return false;
+                        }
+
+                        //Company email is not in database. We will register and then sign in.
+                        String companyRegisterURL = "http://10.0.2.2:8080/company/register/" + mEmail + "/" + mPassword;
+                        result = postConnection(companyRegisterURL);
+                        response = new JSONObject(result);
+                        registerSucessful = response.getBoolean("status");
+
+                        if(registerSucessful){
+                            // Registration successfully completed
+                            Log.i("LOGIN", "Registration sucessfull. You are also signed in app now.");
+                            //TODO: Save to some global class or better in shared preferences. So the company will be signed into app
+                        }else{
+                            // O stari, o fak, o ne me je*bat :), somewhere something went wrong and registration failed!
+                            Log.i("LOGIN", "Registration failed. Please try again and check email and password");
+                            return false;
+                        }
+                    }
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+            }else{ // if it is user, not company
+
+                String userLoginURL = "http://10.0.2.2:8080/login/" + mEmail + "/" + mPassword;
+
+                //get result from server
+                try {
+                    result = postConnection(userLoginURL);
+                    response = new JSONObject(result);
+                    loginSucessful = response.getBoolean("result");
+
+                    if(loginSucessful){
+                        //User is already in database. We just sign in!
+                        //TODO: Save to some global class or better in shared preferences.
+                        Log.i("LOGIN","Login sucessfull. Hello User :)");
+
+                    }else{
+                        //Login is already registered, but apparently someone mistyped password and should try again.
+                        if(loginError.equals("Login Failed, wrong password")){
+                            Log.i("LOGIN", "Login failed. Check you password and try again.");
+                            return false;
+                        }
+                        //User is not in database. We will register and then sign in.
+                        String userRegisterURL = "http://10.0.2.2:8080/register/" + mEmail + "/" + mPassword;
+                        result = postConnection(userRegisterURL);
+                        response = new JSONObject(result);
+                        registerSucessful = response.getBoolean("result");
+
+                        if(registerSucessful){
+                            // Registration successfully completed
+
+                            Log.i("LOGIN", "Registration sucessfull. You are also signed in app now.");
+                            //TODO: Save to some global class or better in shared preferences. So the company will be signed into app
+                        }else{
+                            // O stari, o fak, o ne me je*bat :), somewhere something went wrong and registration failed!
+                            Log.i("LOGIN", "Registration failed. Please try again and check email and password");
+                            return false;
+                        }
+                    }
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                Log.i("LOGIN", "You are now signed in.");
+                return true;
+            }
+
+            /*
+            String URLCompanyAndUserLogin = "http://10.0.2.2:8080/login/" + mEmail + "/" + mPassword; //login NI za oba je enak
+            String URLUserRegister = "http://10.0.2.2:8080/register/" + mEmail + "/" + mPassword; //register za userja
+            String URLCompanyRegister = "http://10.0.2.2:8080/company/register/" + mEmail + "/" + mPassword +
+                    "/" + mName + "/" + mAddress; //registracija za podjetje
 
 
             String result = "";
@@ -384,19 +493,23 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 //login
                 result = postConnection(URLCompanyAndUserLogin);
                 JSONObject responeString = new JSONObject(result);
-                String response =  responeString.getString("response");
+                String response = responeString.getString("response");
 
-                if (response.equals("Login Sucess")){
+                if (response.equals("Login Sucess")) {
                     return true;
-                }if (response.equals("Login Failed, user does not exist!")){//ce user ne obstaja ga registriramo
+                }
+                if (response.equals("Login Failed, user does not exist!")) {//ce user ne obstaja ga registriramo
                     //nastavimo primeren URL za registracijo
                     String URLregister = company ? URLCompanyRegister : URLUserRegister;
                     URLregister = URLregister.replaceAll(" ", "%20"); //potrebno zaradi presledkov
                     //URLregister = URLEncoder.encode(URLregister, "UTF-8");
-                    postConnection(URLregister); //registracija
-                    postConnection(URLCompanyAndUserLogin); //login
+                    String registrationResponse = postConnection(URLregister); //registracija
+                    Log.e("Registracija", registrationResponse);
+                    String loginResponse = postConnection(URLCompanyAndUserLogin); //login
+                    Log.e("Registracija", loginResponse);
                     return true;
-                }if(response.equals("Login Failed, wrong password")){
+                }
+                if (response.equals("Login Failed, wrong password")) {
                     return false;
                 }
 
@@ -404,7 +517,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 e.printStackTrace();
             }
 
-
+            */
             // TODO: register the new account here.
             return true;
         }
@@ -436,8 +549,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             return EntityUtils.toString(httpEntity);
         }
     }
-
-
 
 
 }

@@ -70,7 +70,7 @@ public class CompanyMainActivity extends Activity {
 
 
                 // Execute HTTP Post Request
-                httpclient.execute(httppost);
+                HttpResponse response = httpclient.execute(httppost);
 
                 return "Koncano";
             } catch (Exception e) {
