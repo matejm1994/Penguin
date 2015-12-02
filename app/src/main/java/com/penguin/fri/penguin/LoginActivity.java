@@ -410,8 +410,11 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                         }
 
                         //Company email is not in database. We will register and then sign in.
-                        String companyRegisterURL = "http://10.0.2.2:8080/company/register/" + mEmail + "/" + mPassword;
-                        result = postConnection(companyRegisterURL);
+
+                        String URLCompanyRegister = "http://10.0.2.2:8080/company/register/" + mEmail + "/" + mPassword +
+                                "/" + mName + "/" + mAddress; //registracija za podjetje
+                        URLCompanyRegister = URLCompanyRegister.replaceAll(" ", "%20");
+                        result = postConnection(URLCompanyRegister);
                         response = new JSONObject(result);
                         registerSucessful = response.getBoolean("status");
 
