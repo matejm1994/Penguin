@@ -242,7 +242,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         }
 
 
-
         if (cancel) {
             // There was an error; don't attempt login and focus the first
             // form field with an error.
@@ -379,146 +378,56 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
         @Override
         protected Boolean doInBackground(Void... params) {
-            // TODO: attempt authentication against a network service.
 
-            String result = "";
-            boolean loginSucessful = false;
-            boolean registerSucessful = false;
-            String loginError = "";
-
+            String result;
+            boolean loginSucessful;
+            boolean registerSucessful;
+            String loginError;
             JSONObject response;
 
-            if (IS_COMPANY) {
-                String companyLoginURL = "http://10.0.2.2:8080/company/login/" + mEmail + "/" + mPassword;
-
-                //get result from server
-                try {
-                    result = postConnection(companyLoginURL);
-                    response = new JSONObject(result);
-                    loginSucessful = response.getBoolean("result");
-                    loginError = response.getString("response");
-
-                    if(loginSucessful){
-                        //Company is already in database. We just sign in!
-                        //TODO: Save to some global class or better in shared preferences.
-                        Log.i("LOGIN", "Login sucessfull. Hello Company :)");
-                    }else{
-                        //Login is already registered, but apparently someone mistyped password and should try again.
-                        if(loginError.equals("Login Failed, wrong password")){
-                            Log.i("LOGIN", "Login failed. Check you password and try again.");
-                            return false;
-                        }
-
-                        //Company email is not in database. We will register and then sign in.
-                        String companyRegisterURL = "http://10.0.2.2:8080/company/register/" + mEmail + "/" + mPassword;
-                        result = postConnection(companyRegisterURL);
-                        response = new JSONObject(result);
-                        registerSucessful = response.getBoolean("status");
-
-                        if(registerSucessful){
-                            // Registration successfully completed
-                            Log.i("LOGIN", "Registration sucessfull. You are also signed in app now.");
-                            //TODO: Save to some global class or better in shared preferences. So the company will be signed into app
-                        }else{
-                            // O stari, o fak, o ne me je*bat :), somewhere something went wrong and registration failed!
-                            Log.i("LOGIN", "Registration failed. Please try again and check email and password");
-                            return false;
-                        }
-                    }
-
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-
-            }else{ // if it is user, not company
-
-                String userLoginURL = "http://10.0.2.2:8080/login/" + mEmail + "/" + mPassword;
-
-                //get result from server
-                try {
-                    result = postConnection(userLoginURL);
-                    response = new JSONObject(result);
-                    loginSucessful = response.getBoolean("result");
-
-                    if(loginSucessful){
-                        //User is already in database. We just sign in!
-                        //TODO: Save to some global class or better in shared preferences.
-                        Log.i("LOGIN","Login sucessfull. Hello User :)");
-
-                    }else{
-                        //Login is already registered, but apparently someone mistyped password and should try again.
-                        if(loginError.equals("Login Failed, wrong password")){
-                            Log.i("LOGIN", "Login failed. Check you password and try again.");
-                            return false;
-                        }
-                        //User is not in database. We will register and then sign in.
-                        String userRegisterURL = "http://10.0.2.2:8080/register/" + mEmail + "/" + mPassword;
-                        result = postConnection(userRegisterURL);
-                        response = new JSONObject(result);
-                        registerSucessful = response.getBoolean("result");
-
-                        if(registerSucessful){
-                            // Registration successfully completed
-
-                            Log.i("LOGIN", "Registration sucessfull. You are also signed in app now.");
-                            //TODO: Save to some global class or better in shared preferences. So the company will be signed into app
-                        }else{
-                            // O stari, o fak, o ne me je*bat :), somewhere something went wrong and registration failed!
-                            Log.i("LOGIN", "Registration failed. Please try again and check email and password");
-                            return false;
-                        }
-                    }
-
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-                Log.i("LOGIN", "You are now signed in.");
-                return true;
-            }
-
-            /*
-            String URLCompanyAndUserLogin = "http://10.0.2.2:8080/login/" + mEmail + "/" + mPassword; //login NI za oba je enak
-            String URLUserRegister = "http://10.0.2.2:8080/register/" + mEmail + "/" + mPassword; //register za userja
-            String URLCompanyRegister = "http://10.0.2.2:8080/company/register/" + mEmail + "/" + mPassword +
-                    "/" + mName + "/" + mAddress; //registracija za podjetje
-
-
-            String result = "";
+            String loginURL = IS_COMPANY ? "http://10.0.2.2:8080/company/login/" + mEmail +
+                    "/" + mPassword : "http://10.0.2.2:8080/login/" + mEmail + "/" + mPassword;
+            String registerURL = IS_COMPANY ? "http://10.0.2.2:8080/company/register/" + mEmail +
+                    "/" + mPassword + "/" + mName + "/" + mAddress : "http://10.0.2.2:8080/register/"
+                    + mEmail + "/" + mPassword;
 
             try {
-                //login
-                result = postConnection(URLCompanyAndUserLogin);
-                JSONObject responeString = new JSONObject(result);
-                String response = responeString.getString("response");
-
-                if (response.equals("Login Sucess")) {
+                result = postConnection(loginURL);
+                response = new JSONObject(result);
+                loginSucessful = response.getBoolean("result");
+                if (loginSucessful) {
+                    //TODO: Login successful, fetch response and save it
                     return true;
-                }
-                if (response.equals("Login Failed, user does not exist!")) {//ce user ne obstaja ga registriramo
-                    //nastavimo primeren URL za registracijo
-                    String URLregister = company ? URLCompanyRegister : URLUserRegister;
-                    URLregister = URLregister.replaceAll(" ", "%20"); //potrebno zaradi presledkov
-                    //URLregister = URLEncoder.encode(URLregister, "UTF-8");
-                    String registrationResponse = postConnection(URLregister); //registracija
-                    Log.e("Registracija", registrationResponse);
-                    String loginResponse = postConnection(URLCompanyAndUserLogin); //login
-                    Log.e("Registracija", loginResponse);
-                    return true;
-                }
-                if (response.equals("Login Failed, wrong password")) {
-                    return false;
-                }
+                } else {
+                    //login failed... lets check what is wrong
+                    loginError = response.getString("response");
+                    if (loginError.equals("Login Failed, wrong password")) {
+                        // User or company exist in database, but password is wrong
+                        //TODO: Inform user to check password
+                        return false;
+                    } else {
+                        //okay, we have new e-mail address, now we have to register user or company
+                        result = postConnection(registerURL);
+                        response = new JSONObject(result);
+                        registerSucessful = response.getBoolean("result");
+                        if (registerSucessful) {
+                            //We successfully registered a company or a user
+                            //TODO: Log this user  or company to get ID code
+                            return true;
+                        } else {
+                            //Registration failed
+                            //TODO: Inform user to try again
+                            return false;
+                        }
 
-            } catch (Exception e) {
+                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (JSONException e) {
                 e.printStackTrace();
             }
-
-            */
-            // TODO: register the new account here.
+            
             return true;
         }
 
