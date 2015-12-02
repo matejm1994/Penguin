@@ -331,7 +331,10 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             protected void onPostExecute(String[] result) {
-                listViewInit(); //Inicializiramo listView
+                if (result != null ){
+                    listViewInit(); //Inicializiramo listView
+                }
+
             }
         }
 

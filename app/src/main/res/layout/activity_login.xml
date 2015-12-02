@@ -109,7 +109,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:checked="false"
-                android:text="Check to sign in as company" />
+                android:text="Check to register as company" />
 
             <Button
                 android:id="@+id/email_sign_in_button"
