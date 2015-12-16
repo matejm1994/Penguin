@@ -26,11 +26,11 @@ public class CompanyMainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_company_main);
 
+        Bundle b = getIntent().getExtras();
+        final int companyID = b.getInt("id");
+
         final EditText etOfferName = (EditText)findViewById(R.id.etCompanyAddOfferName);
         final EditText etOfferRules = (EditText)findViewById(R.id.etCompanyAddOfferRule);
-
-        //remove this line AFTER implementation of login
-        final EditText etID = (EditText)findViewById(R.id.etCompanyNewOfferID);
 
         // Button to add new offer for company
         Button button = (Button) findViewById(R.id.bCompanyAddOffer);
@@ -43,15 +43,8 @@ public class CompanyMainActivity extends Activity {
                 if(companyOfferName.length()==0 || companyOfferRules.length() == 0){
                     Log.e("NAPAK", "Niso vsa polja....");
 
-                }else if(etID.getText().toString().length()==0){
-                    //remove this IF statement AFTER implementation of login
-                    // finding company ID should be automatic
-                    Log.e("NAPAK", "Niso vsa polja....mora biti tudi ID - zacasno");
                 }else{
-                    Log.e("JAAAA", etID.getText().toString());
-                    Log.e("JAAAA", companyOfferName);
-                    Log.e("JAAAA", companyOfferRules);
-                   new AddNewOfferTask().execute(etID.getText().toString(),companyOfferName,companyOfferRules);
+                   new AddNewOfferTask().execute(Integer.toString(companyID),companyOfferName,companyOfferRules);
                 }
             }
         });

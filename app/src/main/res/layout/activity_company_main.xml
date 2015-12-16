@@ -52,25 +52,4 @@
         android:layout_below="@+id/tvCompanyAddOfferRules"
         android:layout_alignParentLeft="true" />
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceSmall"
-        android:text="Company ID - dokler login ne dela"
-        android:id="@+id/textView"
-        android:layout_centerVertical="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
-
-    <EditText
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:inputType="number"
-        android:ems="10"
-        android:id="@+id/etCompanyNewOfferID"
-        android:layout_below="@+id/textView"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_alignRight="@+id/etCompanyAddOfferRule"
-        android:layout_alignEnd="@+id/etCompanyAddOfferRule" />
 </RelativeLayout>

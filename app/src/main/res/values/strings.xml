@@ -86,4 +86,9 @@
     <string name="title_activity_company">CompanyActivity</string>
     <string name="title_activity_company_main">CompanyMainActivity</string>
     <string name="uporabnikovoIme">Janez Dijak</string>
+    <string name="login">Log in</string>
+    <string name="login_new_account">I don\'t have an account</string>
+    <string name="login_is_company">Company?</string>
+    <string name="login_email">email</string>
+    <string name="login_password">Password</string>
 </resources>

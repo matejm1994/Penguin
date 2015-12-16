@@ -1,38 +1,18 @@
 package com.penguin.fri.penguin;
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
-import android.annotation.TargetApi;
-import android.content.pm.PackageManager;
-import android.support.annotation.NonNull;
-import android.support.design.widget.Snackbar;
-import android.support.design.widget.TextInputLayout;
-import android.support.v7.app.AppCompatActivity;
-import android.app.LoaderManager.LoaderCallbacks;
-
-import android.content.CursorLoader;
-import android.content.Loader;
-import android.database.Cursor;
-import android.net.Uri;
+import android.app.ProgressDialog;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
-
-import android.os.Build;
 import android.os.Bundle;
-import android.provider.ContactsContract;
-import android.text.TextUtils;
+import android.app.Activity;
+import android.preference.PreferenceManager;
+import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.View;
-import android.view.View.OnClickListener;
-import android.view.inputmethod.EditorInfo;
-import android.widget.ArrayAdapter;
-import android.widget.AutoCompleteTextView;
 import android.widget.Button;
-import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.EditText;
-import android.widget.TextView;
-import android.widget.Toast;
+import android.widget.Switch;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -44,412 +24,112 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.net.URL;
-import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.List;
 
-import static android.Manifest.permission.READ_CONTACTS;
-
-/**
- * A login screen that offers login via email/password.
- */
-public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<Cursor> {
-
-
-    public static boolean IS_COMPANY = false;
-
-    /**
-     * Id to identity READ_CONTACTS permission request.
-     */
-    private static final int REQUEST_READ_CONTACTS = 0;
-
-    /**
-     * A dummy authentication store containing known user names and passwords.
-     * TODO: remove after connecting to a real authentication system.
-     */
-    private static final String[] DUMMY_CREDENTIALS = new String[]{
-            "foo@example.com:hello", "bar@example.com:world"
-    };
-    /**
-     * Keep track of the login task to ensure we can cancel it if requested.
-     */
-    private UserLoginTask mAuthTask = null;
-
-    // UI references.
-    private AutoCompleteTextView mEmailView;
-    private EditText mPasswordView;
-    private TextInputLayout TextInputLayoutmNameView;
-    private TextInputLayout TextInputLayoutmAddressView;
-    private EditText mName;
-    private EditText mAddress;
-    private CheckBox checkBox;
-    private View mProgressView;
-    private View mLoginFormView;
+public class LoginActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-        setupActionBar();
-        // Set up the login form.
-        mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
-        populateAutoComplete();
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        mPasswordView = (EditText) findViewById(R.id.password);
-        mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
-                if (id == R.id.login || id == EditorInfo.IME_NULL) {
-                    attemptLogin();
-                    return true;
-                }
-                return false;
-            }
-        });
-
-        mName = (EditText) findViewById(R.id.name);
-        mAddress = (EditText) findViewById(R.id.address);
-
-        TextInputLayoutmNameView = (TextInputLayout) findViewById(R.id.textInputLayoutName);
-        TextInputLayoutmAddressView = (TextInputLayout) findViewById(R.id.textInputLayoutAddress);
-        checkBox = (CheckBox) findViewById(R.id.checkBox);
-        checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (checkBox.isChecked()) {
-                    IS_COMPANY = true;
-                    TextInputLayoutmNameView.setVisibility(View.VISIBLE);
-                    TextInputLayoutmAddressView.setVisibility(View.VISIBLE);
-                    TextInputLayoutmNameView.requestLayout();
-                    TextInputLayoutmAddressView.requestLayout();
-                } else {
-                    IS_COMPANY = false;
-                    TextInputLayoutmNameView.setVisibility(View.GONE);
-                    TextInputLayoutmAddressView.setVisibility(View.GONE);
-                    TextInputLayoutmNameView.requestLayout();
-                    TextInputLayoutmAddressView.requestLayout();
-                }
-            }
-        });
-
-
-        Button mEmailSignInButton = (Button) findViewById(R.id.email_sign_in_button);
-        mEmailSignInButton.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                attemptLogin();
-            }
-        });
-
-        mLoginFormView = findViewById(R.id.login_form);
-        mProgressView = findViewById(R.id.login_progress);
     }
 
-    private void populateAutoComplete() {
-        if (!mayRequestContacts()) {
-            return;
+    public void userLogin(View view) {
+        EditText etEmail = (EditText) findViewById(R.id.etEmail);
+        EditText etPassword = (EditText) findViewById(R.id.etPassword);
+        Switch sCompany = (Switch) findViewById(R.id.sCompany);
+
+        String email = etEmail.getText().toString();
+        String password = etPassword.getText().toString();
+        Boolean isCompany = sCompany.isActivated();
+
+        // A little bit lazy... will implement this later.
+        //TODO: Check for valid email address. Now, let's just assume that email is correct
+        //TODO: We should probably check for password strength too...
+
+        //If everything is okay, we should run login method ... in background
+        AsyncUserLoginTask loginTask = new AsyncUserLoginTask(email, password, isCompany);
+        loginTask.execute((Void) null);
+
+    }
+
+    public class AsyncUserLoginTask extends AsyncTask<Void, Void, Void> {
+
+        ProgressDialog pdLoading = new ProgressDialog(LoginActivity.this);
+
+        private String email = "";
+        private String password = "";
+        private boolean isCompany = false;
+
+        AsyncUserLoginTask(String email, String password, boolean isCompany) {
+            this.email = email;
+            this.password = password;
+            this.isCompany = isCompany;
         }
 
-        getLoaderManager().initLoader(0, null, this);
-    }
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
 
-    private boolean mayRequestContacts() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-            return true;
-        }
-        if (checkSelfPermission(READ_CONTACTS) == PackageManager.PERMISSION_GRANTED) {
-            return true;
-        }
-        if (shouldShowRequestPermissionRationale(READ_CONTACTS)) {
-            Snackbar.make(mEmailView, R.string.permission_rationale, Snackbar.LENGTH_INDEFINITE)
-                    .setAction(android.R.string.ok, new View.OnClickListener() {
-                        @Override
-                        @TargetApi(Build.VERSION_CODES.M)
-                        public void onClick(View v) {
-                            requestPermissions(new String[]{READ_CONTACTS}, REQUEST_READ_CONTACTS);
-                        }
-                    });
-        } else {
-            requestPermissions(new String[]{READ_CONTACTS}, REQUEST_READ_CONTACTS);
-        }
-        return false;
-    }
+            // It would be awesome to show user some interface while Katya's database is
+            // struggling to make responses to our login demands.
+            pdLoading.setMessage("\tLoading...");
+            pdLoading.show();
 
-    /**
-     * Callback received when a permissions request has been completed.
-     */
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
-                                           @NonNull int[] grantResults) {
-        if (requestCode == REQUEST_READ_CONTACTS) {
-            if (grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                populateAutoComplete();
-            }
-        }
-    }
-
-    /**
-     * Set up the {@link android.app.ActionBar}, if the API is available.
-     */
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-    private void setupActionBar() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-            // Show the Up button in the action bar.
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        }
-    }
-
-    /**
-     * Attempts to sign in or register the account specified by the login form.
-     * If there are form errors (invalid email, missing fields, etc.), the
-     * errors are presented and no actual login attempt is made.
-     */
-    private void attemptLogin() {
-        if (mAuthTask != null) {
-            return;
-        }
-
-        // Reset errors.
-        mEmailView.setError(null);
-        mPasswordView.setError(null);
-
-        // Store values at the time of the login attempt.
-        String email = mEmailView.getText().toString();
-        String password = mPasswordView.getText().toString();
-        String name = mName.getText().toString();
-        String address = mAddress.getText().toString();
-
-        boolean cancel = false;
-        View focusView = null;
-
-        // Check for a valid password, if the user entered one.
-        if (!TextUtils.isEmpty(password) && !isPasswordValid(password)) {
-            mPasswordView.setError(getString(R.string.error_invalid_password));
-            focusView = mPasswordView;
-            cancel = true;
-        }
-
-        // Check for a valid email address.
-        if (TextUtils.isEmpty(email)) {
-            mEmailView.setError(getString(R.string.error_field_required));
-            focusView = mEmailView;
-            cancel = true;
-        } else if (!isEmailValid(email)) {
-            mEmailView.setError(getString(R.string.error_invalid_email));
-            focusView = mEmailView;
-            cancel = true;
-        }
-
-
-        if (cancel) {
-            // There was an error; don't attempt login and focus the first
-            // form field with an error.
-            focusView.requestFocus();
-        } else {
-            // Show a progress spinner, and kick off a background task to
-            // perform the user login attempt.
-            showProgress(true);
-            mAuthTask = new UserLoginTask(email, password, name, address);
-            mAuthTask.execute((Void) null);
-        }
-    }
-
-    private boolean isEmailValid(String email) {
-        //TODO: Replace this with your own logic
-        return email.contains("@");
-    }
-
-    private boolean isPasswordValid(String password) {
-        //TODO: Replace this with your own logic
-        return password.length() > 4;
-    }
-
-    /**
-     * Shows the progress UI and hides the login form.
-     */
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
-    private void showProgress(final boolean show) {
-        // On Honeycomb MR2 we have the ViewPropertyAnimator APIs, which allow
-        // for very easy animations. If available, use these APIs to fade-in
-        // the progress spinner.
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
-            int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
-
-            mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
-            mLoginFormView.animate().setDuration(shortAnimTime).alpha(
-                    show ? 0 : 1).setListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
-                }
-            });
-
-            mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
-            mProgressView.animate().setDuration(shortAnimTime).alpha(
-                    show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
-                }
-            });
-        } else {
-            // The ViewPropertyAnimator APIs are not available, so simply show
-            // and hide the relevant UI components.
-            mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
-            mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
-        }
-    }
-
-    @Override
-    public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
-        return new CursorLoader(this,
-                // Retrieve data rows for the device user's 'profile' contact.
-                Uri.withAppendedPath(ContactsContract.Profile.CONTENT_URI,
-                        ContactsContract.Contacts.Data.CONTENT_DIRECTORY), ProfileQuery.PROJECTION,
-
-                // Select only email addresses.
-                ContactsContract.Contacts.Data.MIMETYPE +
-                        " = ?", new String[]{ContactsContract.CommonDataKinds.Email
-                .CONTENT_ITEM_TYPE},
-
-                // Show primary email addresses first. Note that there won't be
-                // a primary email address if the user hasn't specified one.
-                ContactsContract.Contacts.Data.IS_PRIMARY + " DESC");
-    }
-
-    @Override
-    public void onLoadFinished(Loader<Cursor> cursorLoader, Cursor cursor) {
-        List<String> emails = new ArrayList<>();
-        cursor.moveToFirst();
-        while (!cursor.isAfterLast()) {
-            emails.add(cursor.getString(ProfileQuery.ADDRESS));
-            cursor.moveToNext();
-        }
-
-        addEmailsToAutoComplete(emails);
-    }
-
-    @Override
-    public void onLoaderReset(Loader<Cursor> cursorLoader) {
-
-    }
-
-    private interface ProfileQuery {
-        String[] PROJECTION = {
-                ContactsContract.CommonDataKinds.Email.ADDRESS,
-                ContactsContract.CommonDataKinds.Email.IS_PRIMARY,
-        };
-
-        int ADDRESS = 0;
-        int IS_PRIMARY = 1;
-    }
-
-
-    private void addEmailsToAutoComplete(List<String> emailAddressCollection) {
-        //Create adapter to tell the AutoCompleteTextView what to show in its dropdown list.
-        ArrayAdapter<String> adapter =
-                new ArrayAdapter<>(LoginActivity.this,
-                        android.R.layout.simple_dropdown_item_1line, emailAddressCollection);
-
-        mEmailView.setAdapter(adapter);
-    }
-
-    /**
-     * Represents an asynchronous login/registration task used to authenticate
-     * the user.
-     */
-    public class UserLoginTask extends AsyncTask<Void, Void, Boolean> {
-
-        private final String mEmail;
-        private final String mPassword;
-        private final String mName;
-        private final String mAddress;
-
-        boolean company = checkBox.isChecked();
-
-        UserLoginTask(String email, String password, String name, String address) {
-            mEmail = email;
-            mPassword = password;
-            mName = name;
-            mAddress = address;
         }
 
 
         @Override
-        protected Boolean doInBackground(Void... params) {
+        protected Void doInBackground(Void... params) {
 
+            String loginURL = isCompany ? "http://10.0.2.2:8080/company/login/" + email +
+                    "/" + password : "http://10.0.2.2:8080/login/" + email + "/" + password;
             String result;
-            boolean loginSucessful;
-            boolean registerSucessful;
-            String loginError;
             JSONObject response;
-
-            String loginURL = IS_COMPANY ? "http://10.0.2.2:8080/company/login/" + mEmail +
-                    "/" + mPassword : "http://10.0.2.2:8080/login/" + mEmail + "/" + mPassword;
-            String registerURL = IS_COMPANY ? "http://10.0.2.2:8080/company/register/" + mEmail +
-                    "/" + mPassword + "/" + mName + "/" + mAddress : "http://10.0.2.2:8080/register/"
-                    + mEmail + "/" + mPassword;
+            boolean loginSuccessful;
 
             try {
+                // Try connecting to database and get a response
                 result = postConnection(loginURL);
                 response = new JSONObject(result);
-                loginSucessful = response.getBoolean("result");
-                if (loginSucessful) {
-                    //TODO: Login successful, fetch response and save it
-                    return true;
-                } else {
-                    //login failed... lets check what is wrong
-                    loginError = response.getString("response");
-                    if (loginError.equals("Login Failed, wrong password")) {
-                        // User or company exist in database, but password is wrong
-                        //TODO: Inform user to check password
-                        return false;
-                    } else {
-                        //okay, we have new e-mail address, now we have to register user or company
-                        result = postConnection(registerURL);
-                        response = new JSONObject(result);
-                        registerSucessful = response.getBoolean("result");
-                        if (registerSucessful) {
-                            //We successfully registered a company or a user
-                            //TODO: Log this user  or company to get ID code
-                            return true;
-                        } else {
-                            //Registration failed
-                            //TODO: Inform user to try again
-                            return false;
-                        }
+                loginSuccessful = response.getBoolean("result");
 
-                    }
+                if(loginSuccessful){
+                    //If login is successful, save data to shared preferences
+                    saveLoginResponse(isCompany, email, response);
+
+                    Log.i("LOGIN", "Login successful");
+                }else{
+                    //TODO: Inform user to check email and password
+                    Log.i("LOGIN", "Login failed");
                 }
+
+
             } catch (IOException e) {
                 e.printStackTrace();
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-            
-            return true;
+
+
+            return null;
         }
 
         @Override
-        protected void onPostExecute(final Boolean success) {
-            mAuthTask = null;
-            showProgress(false);
-            if (success) {
-                finish();
-            } else {
-                mPasswordView.setError(getString(R.string.error_incorrect_password));
-                mPasswordView.requestFocus();
-            }
+        protected void onPostExecute(Void result) {
+            super.onPostExecute(result);
+
+            // We got what we wanted. Let's close progressDialog now. All hail database!
+            pdLoading.dismiss();
         }
 
-        @Override
-        protected void onCancelled() {
-            mAuthTask = null;
-            showProgress(false);
-        }
 
-        //post klic
+
+        /*
+         * Method for POST connection to HTTP server,
+         * Method returns answer from database
+         */
         public String postConnection(String URL) throws IOException {
             HttpClient hc = new DefaultHttpClient();
             HttpPost httpPostLoginRequest = new HttpPost(URL);
@@ -457,8 +137,34 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             HttpEntity httpEntity = httpResponse.getEntity();
             return EntityUtils.toString(httpEntity);
         }
+
+
+        /*
+         * Method for saving Login response to sharedPreferences
+         * BOOLEAN: isCompany   <- if user who is logged in represent a company or not
+         * STRING:  mail        <- email of logged in user or company
+         * INT:     id          <- id of logged in user or company
+         */
+        private void saveLoginResponse(boolean isCompany, String mEmail, JSONObject response) throws IOException, JSONException {
+
+            //for now, this will be enough
+            String email = mEmail;
+            int id = response.getInt("id");
+
+            //let's save it..
+            SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+            SharedPreferences.Editor editor  = settings.edit();
+            editor.putBoolean("company", isCompany);
+            editor.putString("mail",email);
+            editor.putInt("id",id);
+            editor.commit();
+
+            // TODO: If user IS eventually a company, we should save more information
+            if (isCompany) {
+
+            }
+        }
+
+
     }
-
-
 }
-

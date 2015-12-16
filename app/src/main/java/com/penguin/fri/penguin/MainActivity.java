@@ -15,7 +15,6 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -23,7 +22,6 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import android.widget.AdapterView;
-import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -40,9 +38,6 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
-
-
-import javax.xml.datatype.Duration;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -117,6 +112,11 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             case R.id.action_login:
                 //Start new Login Activity
+
+                //TODO: Remove after implementing new login
+                //Intent intentLogin = new Intent(this, LoginActivityOLD.class);
+                //startActivity(intentLogin);
+
                 Intent intentLogin = new Intent(this, LoginActivity.class);
                 startActivity(intentLogin);
 

@@ -25,7 +25,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".LoginActivity"
+            android:name=".LoginActivityOLD"
             android:label="@string/title_activity_login"
             android:parentActivityName=".MainActivity" >
             <meta-data
@@ -47,6 +47,14 @@
         <activity
             android:name=".CompanyMainActivity"
             android:label="@string/title_activity_company_main" >
+        </activity>
+        <activity
+            android:name=".LoginActivity"
+            android:label="@string/title_activity_login"
+            android:parentActivityName=".MainActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.penguin.fri.penguin.MainActivity" />
         </activity>
     </application>
 
