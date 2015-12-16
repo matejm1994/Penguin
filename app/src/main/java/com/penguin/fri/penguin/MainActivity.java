@@ -150,7 +150,7 @@ public class MainActivity extends AppCompatActivity {
             Fragment myFragment = null;
             switch (position) {
                 case 0:
-                    myFragment = PlaceholderFragment.newInstance(position + 1);
+                    myFragment = new PrikazUporabnikovihIzbranihPonudb();
                     break;
                 case 1:
                     myFragment = new PrikazPonudbFragment();
@@ -221,6 +221,8 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+
+
     //fragment za prikaz ponudb.
     public static class PrikazPonudbFragment extends Fragment {
 
@@ -261,7 +263,6 @@ public class MainActivity extends AppCompatActivity {
                     Intent intent = new Intent(view.getContext(), PrikazPonudbePodjetjaActivity.class);
                     intent.putExtra("CompanyObject", podjetja[+position]);
                     startActivity(intent);
-
 
                     // Toast.makeText(getActivity(), "You Clicked at " + web[+position], Toast.LENGTH_SHORT).show();
 
@@ -339,4 +340,62 @@ public class MainActivity extends AppCompatActivity {
         }
 
     }
+
+
+    //fragment za prikaz ponudb, ki si jih je izbral uporabnik
+    public static class PrikazUporabnikovihIzbranihPonudb extends Fragment{
+
+
+        ListView list;
+        String[] web = {"Prva ponudba", "druga ponudba", "tretja ponudba"};
+        Integer[] imageId = {R.drawable.image1,R.drawable.image2,R.drawable.image3};
+        View rootView;
+
+        @Nullable
+        @Override
+        public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+
+            rootView = inflater.inflate(R.layout.activity_prikaz_uporabnikovih_izbranih_ponudb, container, false);
+
+
+            listViewInit();
+
+            return rootView;
+
+        }
+
+        private void listViewInit() {
+
+
+            CustomList adapter = new
+                    CustomList(getActivity(), web, imageId);
+            list = (ListView) rootView.findViewById(R.id.listUsersOffers);
+            list.setAdapter(adapter);
+            list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view,
+                                        int position, long id) {
+                    //nova aktivnost z imenom
+                    //Intent intent = new Intent(view.getContext(), PrikazPonudbePodjetjaActivity.class);
+                    //intent.putExtra("CompanyObject", podjetja[+position]);
+                    //startActivity(intent);
+
+                     Toast.makeText(getActivity(), "You Clicked at " + web[+position], Toast.LENGTH_SHORT).show();
+
+                }
+            });
+
+
+
+
+        }
+
+
+        //TODO: klic na server za prikaz uporabnikovih ponudb
+
+
+    }
+
+
 }

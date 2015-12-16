@@ -20,6 +20,7 @@
     <string name="permission_rationale">"Contacts permissions are needed for providing email
         completions."
     </string>
+    <string name="check">Check to register as company</string>
     <string name="title_activity_settings">Settings</string>
 
     <!-- Strings related to Settings -->
@@ -84,4 +85,5 @@
     <string name="hello_world">Hello world!</string>
     <string name="title_activity_company">CompanyActivity</string>
     <string name="title_activity_company_main">CompanyMainActivity</string>
+    <string name="uporabnikovoIme">Janez Dijak</string>
 </resources>
