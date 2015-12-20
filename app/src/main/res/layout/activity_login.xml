@@ -68,7 +68,8 @@
         android:id="@+id/bOpenRegisterActivity"
         android:layout_alignTop="@+id/bLogIn"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
+        android:layout_alignParentStart="true"
+        android:onClick="userRegister" />
 
     <Switch
         android:layout_width="wrap_content"
@@ -76,7 +77,7 @@
         android:text="@string/login_is_company"
         android:id="@+id/sCompany"
         android:checked="false"
-        android:layout_above="@+id/bOpenRegisterActivity"
-        android:layout_alignRight="@+id/bLogIn"
-        android:layout_alignEnd="@+id/bLogIn" />
+        android:layout_below="@+id/etPassword"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
 </RelativeLayout>

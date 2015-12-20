@@ -273,8 +273,8 @@ public class MainActivity extends AppCompatActivity {
 
         @TargetApi(Build.VERSION_CODES.CUPCAKE)
         private class RESTCallTaskGetcompanies extends AsyncTask<String, Void, String[]> { //testni za registracijo
-            private final String URLCompanies = "http://10.0.2.2:8080/companies"; // za seznam
-            //"http://10.0.2.2/wcfservice1/Service1.svc/Messages";
+            private final String URLCompanies = "http://192.168.0.101:8080/companies"; // za seznam
+            //"http://192.168.0.101/wcfservice1/Service1.svc/Messages";
 
             @Override
             protected String[] doInBackground(String... params) {

@@ -67,7 +67,7 @@ public class PrikazPonudbePodjetjaActivity extends AppCompatActivity {
     //prikaz ponudb podjetja
     @TargetApi(Build.VERSION_CODES.CUPCAKE)
     private class RESTCallTaskGetOffers extends AsyncTask<String, Void, String[]> { //testni za registracijo
-        private String URLCompanyOffer = "http://10.0.2.2:8080/offers/"; // za seznam
+        private String URLCompanyOffer = "http://192.168.0.101:8080/offers/"; // za seznam
 
         @Override
         protected String[] doInBackground(String... params) {

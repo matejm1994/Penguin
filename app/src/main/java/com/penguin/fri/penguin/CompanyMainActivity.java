@@ -58,8 +58,8 @@ public class CompanyMainActivity extends Activity {
         protected String doInBackground(String... params) {
             try {
                 HttpClient httpclient = new DefaultHttpClient();
-                Log.e("URLLL","http://10.0.2.2:8080/company/add/"+params[0]+"/"+params[1]+"/"+params[2]);
-                HttpPost httppost = new HttpPost("http://10.0.2.2:8080/company/add/"+params[0]+"/"+params[1]+"/"+params[2]);
+                Log.e("URLLL","http://192.168.0.101:8080/company/add/"+params[0]+"/"+params[1]+"/"+params[2]);
+                HttpPost httppost = new HttpPost("http://192.168.0.101:8080/company/add/"+params[0]+"/"+params[1]+"/"+params[2]);
 
 
                 // Execute HTTP Post Request

@@ -1,6 +1,7 @@
 package com.penguin.fri.penguin;
 
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -42,15 +43,24 @@ public class LoginActivity extends AppCompatActivity {
 
         String email = etEmail.getText().toString();
         String password = etPassword.getText().toString();
-        Boolean isCompany = sCompany.isActivated();
+        Boolean isCompany = sCompany.isChecked();
 
         // A little bit lazy... will implement this later.
         //TODO: Check for valid email address. Now, let's just assume that email is correct
         //TODO: We should probably check for password strength too...
 
-        //If everything is okay, we should run login method ... in background
+        //If everything is okay, we should run login class ... in background
         AsyncUserLoginTask loginTask = new AsyncUserLoginTask(email, password, isCompany);
         loginTask.execute((Void) null);
+
+    }
+
+    public void userRegister(View view) {
+        //Run new intent with extra information isCompany - company or user
+        Intent registerIntent = new Intent(this, RegisterActivity.class);
+        Switch sCompany = (Switch) findViewById(R.id.sCompany);
+        registerIntent.putExtra("isCompany",sCompany.isChecked()?"true":"false");
+        startActivity(registerIntent);
 
     }
 
@@ -82,12 +92,13 @@ public class LoginActivity extends AppCompatActivity {
 
         @Override
         protected Void doInBackground(Void... params) {
-
-            String loginURL = isCompany ? "http://10.0.2.2:8080/company/login/" + email +
-                    "/" + password : "http://10.0.2.2:8080/login/" + email + "/" + password;
+            // prej: 10.0.2.2 potem 192.168.0.101
+            String loginURL = isCompany ? "http://192.168.0.101:8080/company/login/" + email +
+                    "/" + password : "http://192.168.0.101:8080/login/" + email + "/" + password;
             String result;
             JSONObject response;
             boolean loginSuccessful;
+            Log.i("URL",loginURL);
 
             try {
                 // Try connecting to database and get a response
@@ -107,7 +118,7 @@ public class LoginActivity extends AppCompatActivity {
 
 
             } catch (IOException e) {
-                e.printStackTrace();
+                Log.e("NAPAKA", e.toString());
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -155,14 +166,15 @@ public class LoginActivity extends AppCompatActivity {
             SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
             SharedPreferences.Editor editor  = settings.edit();
             editor.putBoolean("company", isCompany);
-            editor.putString("mail",email);
-            editor.putInt("id",id);
-            editor.commit();
+            editor.putString("mail", email);
+            editor.putInt("id", id);
+
 
             // TODO: If user IS eventually a company, we should save more information
             if (isCompany) {
 
             }
+            editor.commit();
         }
 
 

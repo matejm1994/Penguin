@@ -407,10 +407,10 @@ public class LoginActivityOLD extends AppCompatActivity implements LoaderCallbac
 
 
 
-            String loginURL = IS_COMPANY ? "http://10.0.2.2:8080/company/login/" + mEmail +
-                    "/" + mPassword : "http://10.0.2.2:8080/login/" + mEmail + "/" + mPassword;
-            String registerURL = IS_COMPANY ? "http://10.0.2.2:8080/company/register/" + mEmail +
-                    "/" + mPassword + "/" + mName + "/" + mAddress : "http://10.0.2.2:8080/register/"
+            String loginURL = IS_COMPANY ? "http://192.168.0.101:8080/company/login/" + mEmail +
+                    "/" + mPassword : "http://192.168.0.101:8080/login/" + mEmail + "/" + mPassword;
+            String registerURL = IS_COMPANY ? "http://192.168.0.101:8080/company/register/" + mEmail +
+                    "/" + mPassword + "/" + mName + "/" + mAddress : "http://192.168.0.101:8080/register/"
                     + mEmail + "/" + mPassword;
 
             try {

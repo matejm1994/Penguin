@@ -91,4 +91,8 @@
     <string name="login_is_company">Company?</string>
     <string name="login_email">email</string>
     <string name="login_password">Password</string>
+    <string name="password">password</string>
+    <string name="name">name</string>
+    <string name="address">address</string>
+    <string name="register">register</string>
 </resources>
