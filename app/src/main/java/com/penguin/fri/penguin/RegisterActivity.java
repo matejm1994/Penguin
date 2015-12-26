@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -148,7 +149,11 @@ public class RegisterActivity extends Activity {
 
             try {
                 // Trying to connect to database and register new user or company
-                result = postConnection(registerURL);
+
+                //TODO: If everything works, remove this line and postConnection Method
+               // result = postConnection(registerURL);
+               result =  Connection.postConnection(registerURL);
+
                 response = new JSONObject(result);
                 if (isCompany) {
                     registerSuccessful = response.getBoolean("status");
@@ -215,13 +220,18 @@ public class RegisterActivity extends Activity {
          * Method for POST connection to HTTP server,
          * Method returns answer from database
          */
+        /*
         public String postConnection(String URL) throws IOException {
+            // To encode URL, so it works over POST connection!
+            final String ALLOWED_URI_CHARS = "@#&=*+-_.,:!?()/~'%";
+            URL = Uri.encode(URL, ALLOWED_URI_CHARS);
             HttpClient hc = new DefaultHttpClient();
             HttpPost httpPostLoginRequest = new HttpPost(URL);
             HttpResponse httpResponse = hc.execute(httpPostLoginRequest);
             HttpEntity httpEntity = httpResponse.getEntity();
             return EntityUtils.toString(httpEntity);
         }
+        */
     }
 
 

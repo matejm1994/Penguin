@@ -12,4 +12,9 @@
         android:orderInCategory="200"
         android:title="@string/action_login"
         app:showAsAction="never" />
+    <item
+        android:id="@+id/action_happy_holidays"
+        android:orderInCategory="200"
+        android:title="Vesele ter srecne praznike! :)"
+        app:showAsAction="never" />
 </menu>

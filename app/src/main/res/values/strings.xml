@@ -95,4 +95,8 @@
     <string name="name">name</string>
     <string name="address">address</string>
     <string name="register">register</string>
+    <string name="company_new_offer">New offer</string>
+    <string name="rules">rules</string>
+    <string name="hashtag">hashtag</string>
+    <string name="add_offer">Add offer</string>
 </resources>

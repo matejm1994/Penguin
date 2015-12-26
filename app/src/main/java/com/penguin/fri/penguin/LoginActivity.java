@@ -1,8 +1,10 @@
 package com.penguin.fri.penguin;
 
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.Activity;
@@ -14,6 +16,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Switch;
+import android.widget.Toast;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -50,7 +53,7 @@ public class LoginActivity extends AppCompatActivity {
         //TODO: We should probably check for password strength too...
 
         //If everything is okay, we should run login class ... in background
-        AsyncUserLoginTask loginTask = new AsyncUserLoginTask(email, password, isCompany);
+        AsyncUserLoginTask loginTask = new AsyncUserLoginTask(email, password, isCompany, this);
         loginTask.execute((Void) null);
 
     }
@@ -59,7 +62,7 @@ public class LoginActivity extends AppCompatActivity {
         //Run new intent with extra information isCompany - company or user
         Intent registerIntent = new Intent(this, RegisterActivity.class);
         Switch sCompany = (Switch) findViewById(R.id.sCompany);
-        registerIntent.putExtra("isCompany",sCompany.isChecked()?"true":"false");
+        registerIntent.putExtra("isCompany", sCompany.isChecked() ? "true" : "false");
         startActivity(registerIntent);
 
     }
@@ -68,14 +71,23 @@ public class LoginActivity extends AppCompatActivity {
 
         ProgressDialog pdLoading = new ProgressDialog(LoginActivity.this);
 
+        boolean loginToCompanySuccesful = false;
+        String errorMessage = "";
+
         private String email = "";
         private String password = "";
         private boolean isCompany = false;
 
-        AsyncUserLoginTask(String email, String password, boolean isCompany) {
+        Context ctx;
+        int userID = -1;
+
+
+        AsyncUserLoginTask(String email, String password, boolean isCompany, Context ctx) {
             this.email = email;
             this.password = password;
             this.isCompany = isCompany;
+            this.ctx = ctx;
+
         }
 
         @Override
@@ -98,28 +110,43 @@ public class LoginActivity extends AppCompatActivity {
             String result;
             JSONObject response;
             boolean loginSuccessful;
-            Log.i("URL",loginURL);
+
+
+            Log.i("URL", loginURL);
+
 
             try {
                 // Try connecting to database and get a response
-                result = postConnection(loginURL);
+                //TODO: If everything works, remove this line and postConnection Method
+                result = Connection.postConnection(loginURL);
+                //result = postConnection(loginURL);
                 response = new JSONObject(result);
                 loginSuccessful = response.getBoolean("result");
 
-                if(loginSuccessful){
+                if (loginSuccessful) {
                     //If login is successful, save data to shared preferences
                     saveLoginResponse(isCompany, email, response);
 
+                    if (isCompany) {
+                        loginToCompanySuccesful = true;
+                    }
+
+                    //get user or company ID to pass it to new class
+                    userID = response.getInt("id");
+
                     Log.i("LOGIN", "Login successful");
-                }else{
-                    //TODO: Inform user to check email and password
+                } else {
                     Log.i("LOGIN", "Login failed");
+                    //loginToCompanySuccesful is false, so we can inform user in postExecute method
+                    errorMessage = "Login failed. Please check your password/username and try again.";
                 }
 
 
             } catch (IOException e) {
                 Log.e("NAPAKA", e.toString());
+                errorMessage = "Whops!. Somewhere something went wrong. Please try again in few minutes. ";
             } catch (JSONException e) {
+                errorMessage = "Whops!. Somewhere something went wrong. Please try again in few minutes. ";
                 e.printStackTrace();
             }
 
@@ -133,28 +160,47 @@ public class LoginActivity extends AppCompatActivity {
 
             // We got what we wanted. Let's close progressDialog now. All hail database!
             pdLoading.dismiss();
-        }
 
+            if (isCompany) {
+                //Open CompanyMainActivity class or inform user that there is some error.
+                if (loginToCompanySuccesful) {
+                    Intent intent = new Intent(ctx, CompanyMainActivity.class);
+                    startActivity(intent);
+
+                    Log.i("LOGIN", "redirecting...");
+                } else {
+                    Toast.makeText(ctx, "Please check ", Toast.LENGTH_LONG).show();
+                }
+
+            }
+
+        }
 
 
         /*
          * Method for POST connection to HTTP server,
          * Method returns answer from database
          */
+        /*
         public String postConnection(String URL) throws IOException {
+            // To encode URL, so it works over POST connection!
+            final String ALLOWED_URI_CHARS = "@#&=*+-_.,:!?()/~'%";
+            URL = Uri.encode(URL, ALLOWED_URI_CHARS);
+
             HttpClient hc = new DefaultHttpClient();
             HttpPost httpPostLoginRequest = new HttpPost(URL);
             HttpResponse httpResponse = hc.execute(httpPostLoginRequest);
             HttpEntity httpEntity = httpResponse.getEntity();
             return EntityUtils.toString(httpEntity);
         }
-
+*/
 
         /*
          * Method for saving Login response to sharedPreferences
          * BOOLEAN: isCompany   <- if user who is logged in represent a company or not
          * STRING:  mail        <- email of logged in user or company
          * INT:     id          <- id of logged in user or company
+         * TODO: Add additional info...
          */
         private void saveLoginResponse(boolean isCompany, String mEmail, JSONObject response) throws IOException, JSONException {
 
@@ -164,15 +210,17 @@ public class LoginActivity extends AppCompatActivity {
 
             //let's save it..
             SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-            SharedPreferences.Editor editor  = settings.edit();
+            SharedPreferences.Editor editor = settings.edit();
             editor.putBoolean("company", isCompany);
             editor.putString("mail", email);
             editor.putInt("id", id);
 
 
-            // TODO: If user IS eventually a company, we should save more information
             if (isCompany) {
-
+                String name = response.getString("name");
+                String address = response.getString("address");
+                editor.putString("name",name);
+                editor.putString("address",address);
             }
             editor.commit();
         }
