@@ -99,4 +99,12 @@
     <string name="rules">rules</string>
     <string name="hashtag">hashtag</string>
     <string name="add_offer">Add offer</string>
+    <string name="title_activity_share">ShareActivity</string>
+    <string name="takePicture">Challenge accepted!</string>
+    <string name="pictureThumbnail">pictureThumbnail</string>
+    <string name="offerInfo">Click on offer to show</string>
+    <string name="ButtonChallengeAccepted">Challenege Accepted!</string>
+    <string name="caption">Caption:</string>
+    <string name="buttonShareOnFB">Share</string>
+    <string name="textRetakePhoto">Retake Photo</string>
 </resources>

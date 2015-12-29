@@ -1,15 +1,16 @@
 package com.penguin.fri.penguin;
 
-import android.annotation.TargetApi;
 import android.content.Intent;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.Button;
+import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -22,18 +23,38 @@ import org.json.JSONObject;
 
 public class PrikazPonudbePodjetjaActivity extends AppCompatActivity {
     TextView textViewPonudba;
+    ListView list;
+    String[] web;
+    Integer[] imageId;
+    OfferClass[] offersArray; //tabela za akcije
+    int offerPosition = 0;
+    Button buttonChallenegeAccepted;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_prikaz_ponudbe_podjetja);
 
+        buttonChallenegeAccepted = (Button) findViewById(R.id.buttonChallengeAccepted);
+        buttonChallenegeAccepted.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                //TODO dodaj ponudbo med uporabnikove ponudbe
+
+                Intent intent = new Intent(getApplicationContext(), ShareActivity.class);
+                startActivity(intent);
+            }
+        });
+
+
         Intent intent = getIntent();
         CompanyClass company = (CompanyClass)intent.getSerializableExtra("CompanyObject");
-        textViewPonudba = (TextView)findViewById(R.id.textViewPonudba);
+        textViewPonudba = (TextView)findViewById(R.id.textVirwOfferInfo);
 
         RESTCallTaskGetOffers restCallTaskGetOffers = new RESTCallTaskGetOffers();
         restCallTaskGetOffers.execute(String.valueOf(company.id));
+
 
         //Toast.makeText(this, "Podjetje"+company.name, Toast.LENGTH_SHORT).show();
     }
@@ -64,10 +85,11 @@ public class PrikazPonudbePodjetjaActivity extends AppCompatActivity {
     }
 
 
+
+
     //prikaz ponudb podjetja
-    @TargetApi(Build.VERSION_CODES.CUPCAKE)
     private class RESTCallTaskGetOffers extends AsyncTask<String, Void, String[]> { //testni za registracijo
-        private String URLCompanyOffer = "http://192.168.0.101:8080/offers/"; // za seznam
+        private String URLCompanyOffer = "http://10.0.2.2:8080/offers/"; // za seznam
 
         @Override
         protected String[] doInBackground(String... params) {
@@ -85,16 +107,36 @@ public class PrikazPonudbePodjetjaActivity extends AppCompatActivity {
                 HttpResponse response = hc.execute(getRequest);
                 HttpEntity entity = response.getEntity();
                 resultHttpRequest = EntityUtils.toString(entity);
-                JSONArray jsonArray = new JSONArray(resultHttpRequest);
+
+                JSONObject jsonObjectResponse = new JSONObject(resultHttpRequest);
+                //JSONArray jsonArrayResponse = jsonObjectResponse.getJSONArray("data");
+                JSONArray jsonArray = jsonObjectResponse.getJSONArray("data");
 
                 StringBuffer sb = new StringBuffer();
                 resultFinal = new String[jsonArray.length()]; //nastavimo velikost tabele
+
+                web = new String[resultFinal.length];
+                imageId = new Integer[resultFinal.length];
+                offersArray = new OfferClass[jsonArray.length()]; //tabela za akcije
+
                 //za imena ponudb
                 for (int i=0; i<jsonArray.length(); i++) {
                     JSONObject jsonObject = jsonArray.getJSONObject(i);
-                    String line =
-                            jsonObject.getString("name")+", "+ jsonObject.getString("rules");
-                    resultFinal[i]=line;
+
+                    web[i] = jsonObject.getString("prize");
+
+                    //slika podjetja
+                    imageId[i] = getApplicationContext().
+                            getResources().
+                            getIdentifier("image" + idPodtjetja, "drawable", getApplicationContext().
+                                    getPackageName());
+
+                    offersArray[i] = new OfferClass(jsonObject.getString("id"),
+                            jsonObject.getString("company_id"), jsonObject.getString("rules"),
+                            jsonObject.getString("name"),jsonObject.getString("hashtags"),
+                            jsonObject.getString("prize"), jsonObject.getString("start"),
+                            jsonObject.getString("finish")
+                    );
 
                 }
 
@@ -107,13 +149,56 @@ public class PrikazPonudbePodjetjaActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(String[] result) {
-                for (int i=0; i<result.length; i++){
-                    textViewPonudba.setText(textViewPonudba.getText()+result[i]);
+                if (web != null){
+                    listViewInit();
+                    offerSet(0);
                 }
+
+
+               // for (int i=0; i<result.length; i++){
+                //    textViewPonudba.setText(textViewPonudba.getText()+result[i]);
+              //  }
         }
     }
 
+    private void offerSet(int position) {
+        //nastavimo ponudbo prvega offerja
+        if (offersArray != null){
+            textViewPonudba.setText("Prize: "+offersArray[position].prize+"" +
+                            "\n"+"Rules: "+offersArray[position].rules
+                            +"\n" +"Hashtags: #"+offersArray[position].hashtags+" #contestPlace"+
+                            "\n"+"Start: "+offersArray[position].start+
+                            "\n"+"Finish: "+offersArray[position].finish
+                    );
+            offerPosition = position;
+        }
 
+    }
+
+
+    private void listViewInit() {
+        CustomList adapter = new
+                CustomList(this, web, imageId);
+        list = (ListView) findViewById(R.id.listViewPrikazPonudbPodjetja); //popravi
+        list.setAdapter(adapter);
+        list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+
+
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view,
+                                    int position, long id) {
+
+
+                offerSet(+position);
+                //Intent intent = new Intent(getApplicationContext(), ShareActivity.class);
+                //intent.putExtra("OfferObject", offersArray[+position]);
+                //startActivity(intent);
+
+                 //Toast.makeText(view.getContext() , "You Clicked at " + web[+position], Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
 
 
 }

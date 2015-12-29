@@ -1,8 +1,11 @@
 package com.penguin.fri.penguin;
 
 import android.annotation.TargetApi;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Build;
+import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TabLayout;
 import android.support.design.widget.FloatingActionButton;
@@ -15,6 +18,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -222,8 +226,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-
-
     //fragment za prikaz ponudb.
     public static class PrikazPonudbFragment extends Fragment {
 
@@ -272,13 +274,15 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
-        @TargetApi(Build.VERSION_CODES.CUPCAKE)
+
         private class RESTCallTaskGetcompanies extends AsyncTask<String, Void, String[]> { //testni za registracijo
-            private final String URLCompanies = "http://192.168.0.101:8080/companies"; // za seznam
+            private final String URLCompanies = "http://10.0.2.2:8080/companies"; // za seznam
             //"http://192.168.0.101/wcfservice1/Service1.svc/Messages";
+
 
             @Override
             protected String[] doInBackground(String... params) {
+                Log.i("TAG", "Tu smo KKKKKK");
                 HttpClient hc = new DefaultHttpClient();
                 String resultHttpRequest = null;
                 String[] resultFinal = null;
@@ -357,17 +361,13 @@ public class MainActivity extends AppCompatActivity {
         public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 
             rootView = inflater.inflate(R.layout.activity_prikaz_uporabnikovih_izbranih_ponudb, container, false);
+            RESTCallTaskGetUsersOffers restCallTaskGetUsersOffers = new RESTCallTaskGetUsersOffers();
+            restCallTaskGetUsersOffers.execute();
 
-
-            listViewInit();
-
+            //listViewInit();
             return rootView;
-
         }
-
         private void listViewInit() {
-
-
             CustomList adapter = new
                     CustomList(getActivity(), web, imageId);
             list = (ListView) rootView.findViewById(R.id.listUsersOffers);
@@ -383,17 +383,88 @@ public class MainActivity extends AppCompatActivity {
                     //startActivity(intent);
 
                      Toast.makeText(getActivity(), "You Clicked at " + web[+position], Toast.LENGTH_SHORT).show();
-
                 }
             });
+        }
+        //TODO: klic na server za prikaz uporabnikovih ponudb
 
 
 
+        private class RESTCallTaskGetUsersOffers extends AsyncTask<String, Void, String[]> { //testni za registracijo
+            private final String URLuserOffers = "http://10.0.2.2:8080/allpromos/nejc@nejc.com"; // za seznam
 
+
+            SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(rootView.getContext());
+            String sharedPreferencesEmail = sharedPreferences.getString( "email" , "null");
+
+
+            @Override
+            protected String[] doInBackground(String... params) {
+
+                System.out.println("email iz shared preferences TA MORA DELAT"+sharedPreferencesEmail);
+
+                HttpClient hc = new DefaultHttpClient();
+                String resultHttpRequest = null;
+                String[] resultFinal = null;
+                try {
+
+                    //request za seznam uporabnikovih ponudb
+                    HttpGet getRequest = new HttpGet(URLuserOffers);
+                    HttpResponse response = hc.execute(getRequest);
+                    HttpEntity entity = response.getEntity();
+                    resultHttpRequest = EntityUtils.toString(entity);
+                    //String string = resultHttpRequest;
+                    //System.out.println(string);
+                    JSONObject jsonObjectResponse = new JSONObject(resultHttpRequest);
+                    JSONArray jsonArray = jsonObjectResponse.getJSONArray("data");
+
+                    //request za ponudbe
+
+
+                    //StringBuffer sb = new StringBuffer();
+                    web = new String[jsonArray.length()];
+                    imageId = new Integer[jsonArray.length()];
+
+
+                    //za imena uporabnikovih izzivov
+                    for (int i = 0; i < jsonArray.length(); i++) {
+                        JSONObject jsonObject = jsonArray.getJSONObject(i);
+                        String line = //popravi
+                                jsonObject.getString("name");
+                        //sb.append(line + "\n");
+
+                        //podatki o ponudbi
+                        web[i] = line;
+
+                        //slika podjetja
+                        imageId[i] = getContext().
+                                getResources().
+                                getIdentifier("image" + jsonObject.getString("company_id"), "drawable", getContext().
+                                        getPackageName());
+
+
+                    }
+
+                    resultFinal = web; //sb.toString();
+                } catch (Exception e) {
+                    Log.i("Prikaz izzivov","Napaka");
+                    e.printStackTrace();
+                }
+
+                return resultFinal;
+            }
+
+            @Override
+            protected void onPostExecute(String[] result) {
+                if (result != null ){
+                    listViewInit(); //Inicializiramo listView
+                }
+
+            }
         }
 
 
-        //TODO: klic na server za prikaz uporabnikovih ponudb
+
 
 
     }
