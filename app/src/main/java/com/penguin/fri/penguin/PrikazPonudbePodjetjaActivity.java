@@ -1,7 +1,9 @@
 package com.penguin.fri.penguin;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.os.AsyncTask;
+import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Menu;
@@ -22,6 +24,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class PrikazPonudbePodjetjaActivity extends AppCompatActivity {
+    private static final int CAM_REQUEST = 1313;
     TextView textViewPonudba;
     ListView list;
     String[] web;
@@ -36,16 +39,7 @@ public class PrikazPonudbePodjetjaActivity extends AppCompatActivity {
         setContentView(R.layout.activity_prikaz_ponudbe_podjetja);
 
         buttonChallenegeAccepted = (Button) findViewById(R.id.buttonChallengeAccepted);
-        buttonChallenegeAccepted.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                //TODO dodaj ponudbo med uporabnikove ponudbe
-
-                Intent intent = new Intent(getApplicationContext(), ShareActivity.class);
-                startActivity(intent);
-            }
-        });
+        buttonChallenegeAccepted.setOnClickListener(new ButtonTakePhotoClicker());
 
 
         Intent intent = getIntent();
@@ -200,5 +194,24 @@ public class PrikazPonudbePodjetjaActivity extends AppCompatActivity {
         });
     }
 
+    class ButtonTakePhotoClicker implements Button.OnClickListener{
 
+        @Override
+        public void onClick(View v) {
+            Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            startActivityForResult(cameraIntent, CAM_REQUEST);
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == CAM_REQUEST && resultCode==RESULT_OK){ //ce je slikanje uspelo poslji v naslednji acitity
+            Bitmap bitmapSlika = (Bitmap) data.getExtras().get("data");
+            Intent intent = new Intent(getApplicationContext(), ShareActivity.class);
+            intent.putExtra("OfferObject", offersArray[offerPosition]);
+            intent.putExtra("Image", bitmapSlika);
+            startActivity(intent);
+        }
+    }
 }
