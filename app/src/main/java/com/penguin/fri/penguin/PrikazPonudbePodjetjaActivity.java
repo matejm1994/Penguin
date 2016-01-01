@@ -157,7 +157,7 @@ public class PrikazPonudbePodjetjaActivity extends AppCompatActivity {
 
     private void offerSet(int position) {
         //nastavimo ponudbo prvega offerja
-        if (offersArray != null){
+        if (offersArray != null && offersArray.length>0){
             textViewPonudba.setText("Prize: "+offersArray[position].prize+"" +
                             "\n"+"Rules: "+offersArray[position].rules
                             +"\n" +"Hashtags: #"+offersArray[position].hashtags+" #contestPlace"+
@@ -198,6 +198,8 @@ public class PrikazPonudbePodjetjaActivity extends AppCompatActivity {
 
         @Override
         public void onClick(View v) {
+
+
             Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
             startActivityForResult(cameraIntent, CAM_REQUEST);
         }
@@ -214,4 +216,11 @@ public class PrikazPonudbePodjetjaActivity extends AppCompatActivity {
             startActivity(intent);
         }
     }
+
+
+
+
+
+
+
 }

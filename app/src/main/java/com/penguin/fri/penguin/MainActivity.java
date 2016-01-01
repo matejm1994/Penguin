@@ -93,6 +93,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -174,7 +176,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public int getCount() {
             // Show 3 total pages.
-            return 3;
+            return 2;
         }
 
         @Override
@@ -352,6 +354,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         ListView list;
+        TextView textViewUserEmail;
         String[] web = {"Prva ponudba", "druga ponudba", "tretja ponudba"};
         Integer[] imageId = {R.drawable.image1,R.drawable.image2,R.drawable.image3};
         View rootView;
@@ -361,12 +364,22 @@ public class MainActivity extends AppCompatActivity {
         public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 
             rootView = inflater.inflate(R.layout.activity_prikaz_uporabnikovih_izbranih_ponudb, container, false);
+            textViewUserEmail = (TextView) rootView.findViewById(R.id.textViewImeUporabnika);
             RESTCallTaskGetUsersOffers restCallTaskGetUsersOffers = new RESTCallTaskGetUsersOffers();
             restCallTaskGetUsersOffers.execute();
 
             //listViewInit();
             return rootView;
         }
+
+
+        @Override
+        public void onResume() {
+            super.onResume();
+            RESTCallTaskGetUsersOffers restCallTaskGetUsersOffers = new RESTCallTaskGetUsersOffers();
+            restCallTaskGetUsersOffers.execute();
+        }
+
         private void listViewInit() {
             CustomList adapter = new
                     CustomList(getActivity(), web, imageId);
@@ -382,7 +395,7 @@ public class MainActivity extends AppCompatActivity {
                     //intent.putExtra("CompanyObject", podjetja[+position]);
                     //startActivity(intent);
 
-                     Toast.makeText(getActivity(), "You Clicked at " + web[+position], Toast.LENGTH_SHORT).show();
+                    // Toast.makeText(getActivity(), "You Clicked at " + web[+position], Toast.LENGTH_SHORT).show();
                 }
             });
         }
@@ -391,17 +404,20 @@ public class MainActivity extends AppCompatActivity {
 
 
         private class RESTCallTaskGetUsersOffers extends AsyncTask<String, Void, String[]> { //testni za registracijo
-            private final String URLuserOffers = "http://10.0.2.2:8080/allpromos/nejc@nejc.com"; // za seznam
+            private  String URLuserOffers = "http://10.0.2.2:8080/allpromos/"; // za seznam
 
 
             SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(rootView.getContext());
-            String sharedPreferencesEmail = sharedPreferences.getString( "email" , "null");
+            String sharedPreferencesEmail = sharedPreferences.getString( "mail" , "null");
+
 
 
             @Override
             protected String[] doInBackground(String... params) {
 
                 System.out.println("email iz shared preferences TA MORA DELAT"+sharedPreferencesEmail);
+
+                URLuserOffers+=sharedPreferencesEmail;
 
                 HttpClient hc = new DefaultHttpClient();
                 String resultHttpRequest = null;
@@ -430,7 +446,7 @@ public class MainActivity extends AppCompatActivity {
                     for (int i = 0; i < jsonArray.length(); i++) {
                         JSONObject jsonObject = jsonArray.getJSONObject(i);
                         String line = //popravi
-                                jsonObject.getString("name");
+                                jsonObject.getString("name")+"\n #"+jsonObject.getString("hashtags");
                         //sb.append(line + "\n");
 
                         //podatki o ponudbi
@@ -457,6 +473,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             protected void onPostExecute(String[] result) {
                 if (result != null ){
+                    textViewUserEmail.setText(sharedPreferencesEmail);
                     listViewInit(); //Inicializiramo listView
                 }
 
@@ -470,4 +487,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+    }
 }

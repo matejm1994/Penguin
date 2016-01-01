@@ -1,8 +1,12 @@
 package com.penguin.fri.penguin;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
+import android.os.AsyncTask;
+import android.preference.PreferenceManager;
+import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -12,7 +16,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.facebook.CallbackManager;
@@ -25,6 +28,9 @@ import com.facebook.share.ShareApi;
 import com.facebook.share.model.SharePhoto;
 import com.facebook.share.model.SharePhotoContent;
 
+import org.apache.http.client.HttpClient;
+import org.apache.http.impl.client.DefaultHttpClient;
+
 import java.util.Arrays;
 import java.util.List;
 
@@ -36,18 +42,32 @@ public class ShareActivity extends AppCompatActivity {
     EditText editTextCaption;
     Button buttonShareOnFb;
     ImageView imageView;
+    OfferClass offer;
+    Button buttonRetakePhoto;
+    private static final int CAM_REQUEST = 1313;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_share);
 
+        offer = (OfferClass)getIntent().getSerializableExtra("OfferObject");
+
         buttonShareOnFb = (Button) findViewById(R.id.buttonShareOnFB); //share na fb
         buttonShareOnFb.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 String caption = editTextCaption.getText().toString();
-                connectToFaceook();
+
+                if (caption.toLowerCase().contains(offer.hashtags.toLowerCase()) && caption.toLowerCase().contains("#contestplace")){
+                    connectToFaceook();
+                }else {
+                    Toast.makeText(ShareActivity.this,
+                            "Caption must contain hashtags "+offer.hashtags+" and "+"#contestPlace",
+                            Toast.LENGTH_LONG).show();
+                }
+
+
             }
         });
 
@@ -58,9 +78,24 @@ public class ShareActivity extends AppCompatActivity {
 
 
 
-        OfferClass offer = (OfferClass)getIntent().getSerializableExtra("OfferObject");
+
         editTextCaption = (EditText) findViewById(R.id.textViewCaption);
-        editTextCaption.setText("#"+offer.hashtags + " " + "#contestPlace");
+        editTextCaption.setText("#" + offer.hashtags + " " + "#contestPlace");
+
+        RESTAddOfferToUsersOffers restAddOfferToUsersOffers = new RESTAddOfferToUsersOffers();
+        restAddOfferToUsersOffers.execute(offer.id);
+
+
+        buttonRetakePhoto = (Button) findViewById(R.id.buttonRetakePhoto);
+        buttonRetakePhoto.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                startActivityForResult(cameraIntent, CAM_REQUEST);
+            }
+        });
+
+
     }
 
     private void connectToFaceook(){
@@ -73,7 +108,7 @@ public class ShareActivity extends AppCompatActivity {
             @Override
             public void onSuccess(LoginResult loginResult) {
                 sharePhotoToFacebook();
-                Toast.makeText(getApplicationContext(), "Objava na fb uspela", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "your challenge was successfully posted on Facebook!", Toast.LENGTH_SHORT).show();
             }
 
             @Override
@@ -108,7 +143,20 @@ public class ShareActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        callbackManager.onActivityResult(requestCode,resultCode,data);
+
+
+        if (requestCode == CAM_REQUEST && resultCode==RESULT_OK){ //ce je ponovno zajemanje slike uspelo nastavi sliko
+            Bitmap bitmapSlika = (Bitmap) data.getExtras().get("data");
+            imageView.setImageDrawable(null);
+            imageView.setImageBitmap(bitmapSlika);
+        }else if (requestCode == CAM_REQUEST && resultCode==RESULT_CANCELED) {
+        }
+        else{
+            callbackManager.onActivityResult(requestCode, resultCode, data);
+        }
+
+
+
     }
 
     @Override
@@ -131,5 +179,25 @@ public class ShareActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private class RESTAddOfferToUsersOffers extends AsyncTask<String, Void, Void> {
+        private String URLAddOfferToUsersOffers = "http://10.0.2.2:8080/newpromo/"; //
+
+        @Override
+        protected Void doInBackground(String... params) {
+            //String idPodtjetja = params[0];
+            SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+            String sharedPreferencesUserEmail = sharedPreferences.getString( "mail" , "null");
+
+            URLAddOfferToUsersOffers+=sharedPreferencesUserEmail+"/"+params[0];
+
+            try {
+                Connection.postConnection(URLAddOfferToUsersOffers); //dodajanje ponudbe k uporabniku
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
     }
 }

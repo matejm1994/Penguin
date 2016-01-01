@@ -72,6 +72,7 @@ public class LoginActivity extends AppCompatActivity {
         ProgressDialog pdLoading = new ProgressDialog(LoginActivity.this);
 
         boolean loginToCompanySuccesful = false;
+        boolean loginToUSerSucessful = false;
         String errorMessage = "";
 
         private String email = "";
@@ -105,8 +106,8 @@ public class LoginActivity extends AppCompatActivity {
         @Override
         protected Void doInBackground(Void... params) {
             // prej: 10.0.2.2 potem 192.168.0.101
-            String loginURL = isCompany ? "http://192.168.0.101:8080/company/login/" + email +
-                    "/" + password : "http://192.168.0.101:8080/login/" + email + "/" + password;
+            String loginURL = isCompany ? "http://10.0.2.2:8080/company/login/" + email +
+                    "/" + password : "http://10.0.2.2:8080/login/" + email + "/" + password;
             String result;
             JSONObject response;
             boolean loginSuccessful;
@@ -129,12 +130,16 @@ public class LoginActivity extends AppCompatActivity {
 
                     if (isCompany) {
                         loginToCompanySuccesful = true;
+                    }else {
+                        loginToUSerSucessful = true;
                     }
 
                     //get user or company ID to pass it to new class
                     userID = response.getInt("id");
 
                     Log.i("LOGIN", "Login successful");
+
+
                 } else {
                     Log.i("LOGIN", "Login failed");
                     //loginToCompanySuccesful is false, so we can inform user in postExecute method
@@ -172,6 +177,14 @@ public class LoginActivity extends AppCompatActivity {
                     Toast.makeText(ctx, "Please check ", Toast.LENGTH_LONG).show();
                 }
 
+            }else {
+                if (loginToUSerSucessful){
+                    Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                    startActivity(intent);
+                    Log.i("LOGIN", "redirecting...");
+                }else {
+                    Toast.makeText(ctx, "Please check ", Toast.LENGTH_LONG).show();
+                }
             }
 
         }
