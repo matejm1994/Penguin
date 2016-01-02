@@ -22,11 +22,12 @@
             android:name=".MainActivity"
             android:label="@string/app_name"
             android:theme="@style/AppTheme.NoActionBar" >
-            <intent-filter>
+            <!--intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
-                <!--category android:name="android.intent.category.LAUNCHER" /-->
-            </intent-filter>
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter-->
+
         </activity>
         <activity
             android:name=".LoginActivityOLD"
@@ -56,7 +57,12 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.penguin.fri.penguin.MainActivity" />
             <intent-filter>
+
+
+                <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+
+
             </intent-filter>
         </activity>
         <activity android:name=".RegisterActivity" >
