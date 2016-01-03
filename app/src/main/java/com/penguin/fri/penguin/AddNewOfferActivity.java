@@ -106,7 +106,7 @@ public class AddNewOfferActivity extends Activity {
 
         @Override
         protected Void doInBackground(Void... params) {
-            String offerURL = "http://192.168.0.101:8080/company/add/" + id + "/" + name + "/" + rule + "/" + hashtag;
+            String offerURL = "http://10.0.2.2:8080/company/add/" + id + "/" + name + "/" + rule + "/" + hashtag;
 
 
 

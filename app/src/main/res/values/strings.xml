@@ -108,4 +108,5 @@
     <string name="buttonShareOnFB">Share</string>
     <string name="textRetakePhoto">Retake Photo</string>
     <string name="app_id">1512806935706528</string>
+    <string name="title_activity_splash_creen">SplashCreen</string>
 </resources>

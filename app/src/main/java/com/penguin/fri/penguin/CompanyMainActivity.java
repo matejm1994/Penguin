@@ -105,7 +105,7 @@ public class CompanyMainActivity extends Activity {
 
         ProgressDialog pdLoading = new ProgressDialog(CompanyMainActivity.this);
 
-        String getURL = "http://192.168.0.101:8080/offers/" + id;
+        String getURL = "http://10.0.2.2:8080/offers/" + id;
         String result;
         JSONArray response;
 
@@ -128,6 +128,10 @@ public class CompanyMainActivity extends Activity {
                 //result = getConnection(getURL);
                 result = Connection.getConnection(getURL);
                 response = new JSONArray(result);
+
+
+
+
 
             } catch (IOException e) {
                 e.printStackTrace();
