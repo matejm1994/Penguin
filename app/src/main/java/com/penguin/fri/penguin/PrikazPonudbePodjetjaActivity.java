@@ -117,7 +117,7 @@ public class PrikazPonudbePodjetjaActivity extends AppCompatActivity {
                 for (int i=0; i<jsonArray.length(); i++) {
                     JSONObject jsonObject = jsonArray.getJSONObject(i);
 
-                    web[i] = jsonObject.getString("prize");
+                    web[i] = jsonObject.getString("name");
 
                     //slika podjetja
                     imageId[i] = getApplicationContext().

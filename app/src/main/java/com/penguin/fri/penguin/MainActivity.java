@@ -81,6 +81,7 @@ public class MainActivity extends AppCompatActivity {
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(mViewPager);
 
+        /*
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -89,6 +90,7 @@ public class MainActivity extends AppCompatActivity {
                         .setAction("Action", null).show();
             }
         });
+        */
 
     }
 
@@ -368,6 +370,9 @@ public class MainActivity extends AppCompatActivity {
             RESTCallTaskGetUsersOffers restCallTaskGetUsersOffers = new RESTCallTaskGetUsersOffers();
             restCallTaskGetUsersOffers.execute();
 
+            SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(rootView.getContext());
+            String sharedPreferencesEmail = sharedPreferences.getString( "mail" , "null");
+            textViewUserEmail.setText(sharedPreferencesEmail);
             //listViewInit();
             return rootView;
         }
@@ -473,7 +478,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             protected void onPostExecute(String[] result) {
                 if (result != null ){
-                    textViewUserEmail.setText(sharedPreferencesEmail);
+
                     listViewInit(); //Inicializiramo listView
                 }
 
