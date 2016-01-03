@@ -280,7 +280,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         private class RESTCallTaskGetcompanies extends AsyncTask<String, Void, String[]> { //testni za registracijo
-            private final String URLCompanies = "http://10.0.2.2:8080/companies"; // za seznam
+            private final String URLCompanies = "http://192.168.1.108:8080/companies"; // za seznam
             //"http://192.168.0.101/wcfservice1/Service1.svc/Messages";
 
 
@@ -409,7 +409,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         private class RESTCallTaskGetUsersOffers extends AsyncTask<String, Void, String[]> { //testni za registracijo
-            private  String URLuserOffers = "http://10.0.2.2:8080/allpromos/"; // za seznam
+            private  String URLuserOffers = "http://192.168.1.108:8080/allpromos/"; // za seznam
 
 
             SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(rootView.getContext());

@@ -3,6 +3,7 @@ package com.penguin.fri.penguin;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -22,6 +23,11 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
+
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 
 public class PrikazPonudbePodjetjaActivity extends AppCompatActivity {
     private static final int CAM_REQUEST = 1313;
@@ -83,7 +89,7 @@ public class PrikazPonudbePodjetjaActivity extends AppCompatActivity {
 
     //prikaz ponudb podjetja
     private class RESTCallTaskGetOffers extends AsyncTask<String, Void, String[]> { //testni za registracijo
-        private String URLCompanyOffer = "http://10.0.2.2:8080/offers/"; // za seznam
+        private String URLCompanyOffer = "http://192.168.1.108:8080/offers/"; // za seznam
 
         @Override
         protected String[] doInBackground(String... params) {
@@ -210,7 +216,26 @@ public class PrikazPonudbePodjetjaActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == CAM_REQUEST && resultCode==RESULT_OK){ //ce je slikanje uspelo poslji v naslednji acitity
             Bitmap bitmapSlika = (Bitmap) data.getExtras().get("data");
+
+            /*/shranjevanje v file
+            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+            bitmapSlika.compress(Bitmap.CompressFormat.PNG, 100, bytes);
+            //4
+            File file = new File(Environment.getExternalStorageDirectory()+File.separator + "image.jpg");
+            try {
+                file.createNewFile();
+                FileOutputStream fo = new FileOutputStream(file);
+                //5
+                fo.write(bytes.toByteArray());
+                fo.close();
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            */
+
             Intent intent = new Intent(getApplicationContext(), ShareActivity.class);
+            OfferClass offerClass = offersArray[0];
             intent.putExtra("OfferObject", offersArray[offerPosition]);
             intent.putExtra("Image", bitmapSlika);
             startActivity(intent);
