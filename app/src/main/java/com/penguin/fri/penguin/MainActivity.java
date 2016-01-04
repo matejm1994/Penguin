@@ -253,6 +253,7 @@ public class MainActivity extends AppCompatActivity {
             RESTCallTaskGetcompanies restCallTaskGetcompanies = new RESTCallTaskGetcompanies();
             restCallTaskGetcompanies.execute();
 
+
             return rootView;
         }
 
