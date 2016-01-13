@@ -106,8 +106,8 @@ public class LoginActivity extends AppCompatActivity {
         @Override
         protected Void doInBackground(Void... params) {
             // prej: 10.0.2.2 potem 192.168.0.101
-            String loginURL = isCompany ? "http://192.168.1.108:8080/company/login/" + email +
-                    "/" + password : "http://192.168.1.108:8080/login/" + email + "/" + password;
+            String loginURL = isCompany ? "http://10.0.2.2:8080/company/login/" + email +
+                    "/" + password : "http://10.0.2.2:8080/login/" + email + "/" + password;
             String result;
             JSONObject response;
             boolean loginSuccessful;

@@ -30,8 +30,13 @@ import com.facebook.share.model.SharePhotoContent;
 
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.json.JSONException;
+import org.json.JSONObject;
 
+import java.io.IOException;
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 public class ShareActivity extends AppCompatActivity {
@@ -61,11 +66,16 @@ public class ShareActivity extends AppCompatActivity {
 
                 if (caption.toLowerCase().contains(offer.hashtags.toLowerCase()) && caption.toLowerCase().contains("#contestplace")){
                     connectToFaceook();
+                    if (!offer.extras.equals("null")){ // ce imamo offer pri katerem stejemo slikce
+                        RESTSetPhotoCount restSetPhotoCount = new RESTSetPhotoCount();
+                        restSetPhotoCount.execute(offer.id); //ustrezno povecaj stevilo slik glede na izziv
+                    }
                 }else {
                     Toast.makeText(ShareActivity.this,
                             "Caption must contain hashtags "+offer.hashtags+" and "+"#contestPlace",
                             Toast.LENGTH_LONG).show();
                 }
+
 
 
             }
@@ -109,6 +119,8 @@ public class ShareActivity extends AppCompatActivity {
             public void onSuccess(LoginResult loginResult) {
                 sharePhotoToFacebook();
                 Toast.makeText(getApplicationContext(), "your challenge was successfully posted on Facebook!", Toast.LENGTH_SHORT).show();
+
+
             }
 
             @Override
@@ -136,8 +148,6 @@ public class ShareActivity extends AppCompatActivity {
 
 
         ShareApi.share(content, null);
-
-
     }
 
     @Override
@@ -195,6 +205,41 @@ public class ShareActivity extends AppCompatActivity {
             try {
                 Connection.postConnection(URLAddOfferToUsersOffers); //dodajanje ponudbe k uporabniku
             } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+    }
+
+    private class RESTSetPhotoCount extends AsyncTask<String, Void, Void>{
+        private String URLSetPhotoCount = "http://10.0.2.2:8080/offer/pics/"; //:userId/:offerId/:picsN";
+
+        @Override
+        protected Void doInBackground(String... params) {
+
+            SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+            int sharedPreferencesID = sharedPreferences.getInt("id", -1);
+
+
+            try {
+                JSONObject jsonObjectOfferRules = new JSONObject(offer.extras); //pravila so shranjena v extras. po njih preverimo ce gre za pravilen cas itd
+
+
+                if (jsonObjectOfferRules.getString("type").equals("time")){
+                    //dobimo trenutni cas
+                    Calendar rightNow = Calendar.getInstance();
+                    int hour = rightNow.get(Calendar.HOUR_OF_DAY);
+                    //System.out.println(hour);
+                    if (hour >= Integer.valueOf(jsonObjectOfferRules.getString("clock"))) {
+                        Connection.postConnection(URLSetPhotoCount + String.valueOf(sharedPreferencesID) + "/" + params[0] +"/"+ "1"); //povecamo st fotk za 1
+                    }
+
+                }
+
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (JSONException e) {
                 e.printStackTrace();
             }
             return null;

@@ -15,9 +15,10 @@ public class OfferClass implements Serializable {
     String prize;
     String start;
     String finish;
+    String extras;
 
     public OfferClass(String id, String companyID, String rules, String name, String hashtags, String prize,
-                      String start, String finish){
+                      String start, String finish, String extras){
         this.id = id;
         this.companyID = companyID;
         this.rules = rules;
@@ -26,6 +27,7 @@ public class OfferClass implements Serializable {
         this.prize = prize;
         this.start = start;
         this.finish = finish;
+        this.extras = extras;
     }
 
 }

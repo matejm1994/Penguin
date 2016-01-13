@@ -34,6 +34,7 @@ import android.content.Intent;
 
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import org.apache.http.HttpEntity;
@@ -42,6 +43,9 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
+
+import java.io.IOException;
+import java.util.Calendar;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -281,7 +285,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         private class RESTCallTaskGetcompanies extends AsyncTask<String, Void, String[]> { //testni za registracijo
-            private final String URLCompanies = "http://192.168.1.108:8080/companies"; // za seznam
+            private final String URLCompanies = "http://10.0.2.2:8080/companies"; // za seznam
             //"http://192.168.0.101/wcfservice1/Service1.svc/Messages";
 
 
@@ -312,7 +316,7 @@ public class MainActivity extends AppCompatActivity {
                     for (int i = 0; i < jsonArray.length(); i++) {
                         JSONObject jsonObject = jsonArray.getJSONObject(i);
                         String line = //popravi
-                                jsonObject.getString("name") + ", " + jsonObject.getString("email");
+                                jsonObject.getString("name");
                         //sb.append(line + "\n");
 
                         //podatki o podjetju
@@ -361,6 +365,7 @@ public class MainActivity extends AppCompatActivity {
         String[] web = {"Prva ponudba", "druga ponudba", "tretja ponudba"};
         Integer[] imageId = {R.drawable.image1,R.drawable.image2,R.drawable.image3};
         View rootView;
+        OfferClass[] offersArray; //tabela za akcije
 
         @Nullable
         @Override
@@ -396,12 +401,19 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onItemClick(AdapterView<?> parent, View view,
                                         int position, long id) {
-                    //nova aktivnost z imenom
-                    //Intent intent = new Intent(view.getContext(), PrikazPonudbePodjetjaActivity.class);
-                    //intent.putExtra("CompanyObject", podjetja[+position]);
-                    //startActivity(intent);
 
-                    // Toast.makeText(getActivity(), "You Clicked at " + web[+position], Toast.LENGTH_SHORT).show();
+                    //let's bodge this thing together, zal nimam nobene bool vrednosti na serverju
+                    if (web[position].contains("COLLECT")){ //ce je uporabnik zbral dovolj slik, prikazemo toast, ponastavimo st Fotografij uporabnika in prikazemo default ponudbo
+                        Toast.makeText(getActivity(), "Your prize has been redeemed!", Toast.LENGTH_SHORT).show();
+                        RESTSetPhotoCount restSetPhotoCount = new RESTSetPhotoCount();
+                        restSetPhotoCount.execute(offersArray[position]); //zmanjsamo st fotk za toliko kot je min fotk za nagrado
+
+                        RESTCallTaskGetUsersOffers restCallTaskGetUsersOffers =new RESTCallTaskGetUsersOffers();//ponovno nalozimo ponudbe
+                        restCallTaskGetUsersOffers.execute();
+
+                    }
+
+
                 }
             });
         }
@@ -410,7 +422,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         private class RESTCallTaskGetUsersOffers extends AsyncTask<String, Void, String[]> { //testni za registracijo
-            private  String URLuserOffers = "http://192.168.1.108:8080/allpromos/"; // za seznam
+            private  String URLuserOffers = "http://10.0.2.2:8080/allpromos/"; // za seznam
 
 
             SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(rootView.getContext());
@@ -446,7 +458,7 @@ public class MainActivity extends AppCompatActivity {
                     //StringBuffer sb = new StringBuffer();
                     web = new String[jsonArray.length()];
                     imageId = new Integer[jsonArray.length()];
-
+                    offersArray = new OfferClass[jsonArray.length()]; //tabela za akcije
 
                     //za imena uporabnikovih izzivov
                     for (int i = 0; i < jsonArray.length(); i++) {
@@ -464,6 +476,33 @@ public class MainActivity extends AppCompatActivity {
                                 getIdentifier("image" + jsonObject.getString("company_id"), "drawable", getContext().
                                         getPackageName());
 
+                        //ce extras polje ni enako null, imamo se stevec za slike
+                        if (!jsonObject.getString("extra").equals("null")){
+                            JSONObject jsonObjectExtra = new JSONObject(jsonObject.getString("extra"));
+                            String potrebnoSteviloFotografij  = jsonObjectExtra.getString("number");
+
+
+                            int sharedPreferencesUserID = sharedPreferences.getInt("id", -1);
+
+                            String steviloTrenutnihFotografijUporabnika  = Connection.getConnection("http://10.0.2.2:8080/offer/pics/" + String.valueOf(sharedPreferencesUserID) + "/" + jsonObject.getString("id")); //pogledamo trenutno st Fotografij
+                            JSONObject jsonObjectSteviloTrenutnihFotogragfij = new JSONObject(steviloTrenutnihFotografijUporabnika);
+                            String steviloTrenutnihFotografij = jsonObjectSteviloTrenutnihFotogragfij.getString("picsNumber");
+
+                            if (Integer.valueOf(steviloTrenutnihFotografij) >= Integer.valueOf(potrebnoSteviloFotografij)){//ce imamo dovolj fotografij, prikazemo Collect
+                                web[i] = "COLLECT "+jsonObject.getString("prize");
+                            }else {
+                                web[i]+= " "+steviloTrenutnihFotografij+"/"+potrebnoSteviloFotografij+" Photos";
+                            }
+
+                        }
+
+                        //dodamo v tabelo za offerje
+                        offersArray[i] = new OfferClass(jsonObject.getString("id"),
+                                jsonObject.getString("company_id"), jsonObject.getString("rules"),
+                                jsonObject.getString("name"),jsonObject.getString("hashtags"),
+                                jsonObject.getString("prize"), jsonObject.getString("start"),
+                                jsonObject.getString("finish"), jsonObject.getString("extra")
+                        );
 
                     }
 
@@ -488,9 +527,38 @@ public class MainActivity extends AppCompatActivity {
 
 
 
+        private class RESTSetPhotoCount extends AsyncTask< OfferClass, Void, Void>{
+            private String URLSetPhotoCount = "http://10.0.2.2:8080/offer/pics/"; //:userId/:offerId/:picsN";
+
+            @Override
+            protected Void doInBackground(OfferClass... params) {
+
+                SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
+                int sharedPreferencesID = sharedPreferences.getInt("id", -1);
+
+                try {
+                    JSONObject jsonObject = new JSONObject(params[0].extras); //dobimo extras podatki o stevilu slik
+
+                    Connection.postConnection(URLSetPhotoCount + String.valueOf(sharedPreferencesID) + "/" + params[0].id +"/-"+jsonObject.getString("number")); //zmanjsamo st fotk
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                return null;
+            }
+        }
+
 
 
     }
+
+
+
+
+
+
+
 
 
     @Override
